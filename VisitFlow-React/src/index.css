@@ -1,0 +1,28 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply font-display text-slate-900 dark:text-slate-100 bg-background-light dark:bg-background-dark;
+  }
+}
+
+.sidebar-item-active {
+  @apply bg-white/10 border-l-4 border-primary text-white;
+}
+
+/* TomSelect Overrides for Dark Mode */
+.dark .ts-control, .dark .ts-control input {
+  color: white !important;
+}
+.dark .ts-dropdown {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: white !important;
+}
+.ts-dropdown {
+  border-radius: 0.5rem !important;
+  margin-top: 5px !important;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1) !important;
+}

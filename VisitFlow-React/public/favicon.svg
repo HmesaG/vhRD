@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Hexagon border -->
+  <path d="M256 20 L480 149.3 V407.7 L256 537 L32 407.7 V149.3 Z" fill="none" stroke="#f58220" stroke-width="25"/>
+  
+  <!-- GMV Stylized Logo (Approximation of the image) -->
+  <g fill="#003865">
+    <!-- G (Top part) -->
+    <path d="M160 210 L256 160 L352 210 L352 260 L256 210 L256 312 L300 290 L300 260 L330 245 L330 310 L256 350 L160 295 V210 Z M200 235 L200 270 L256 300 V235 L200 205 V235 Z"/>
+    
+    <!-- M (Left part) -->
+    <path d="M160 310 V420 H195 V360 L230 385 L265 360 V420 H300 V310 L230 350 L160 310 Z"/>
+    
+    <!-- V (Right part) -->
+    <path d="M315 310 L385 420 H425 L495 310 H455 L385 410 L355 310 Z"/>
+  </g>
+</svg>

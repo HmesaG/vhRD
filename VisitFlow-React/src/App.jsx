@@ -1,0 +1,107 @@
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Dashboard from './pages/Dashboard';
+import VisitsList from './pages/VisitsList';
+import Companies from './pages/Companies';
+import Reports from './pages/Reports';
+import Employees from './pages/Employees';
+import VisitReasons from './pages/VisitReasons';
+import Badges from './pages/Badges';
+import UserManagement from './pages/UserManagement';
+import OrganizationManagement from './pages/OrganizationManagement';
+import AreasManagement from './pages/AreasManagement';
+import SecurityPanel from './pages/SecurityPanel';
+import About from './pages/About';
+import { AuthProvider } from './context/AuthContext';
+import ProtectedRoute from './components/ProtectedRoute';
+import Login from './pages/Login';
+import TestPage from './pages/TestPage';
+
+function App() {
+  // MODO DE PRUEBA: Descomenta la siguiente línea para verificar que React funciona
+  // return <TestPage />;
+
+  return (
+    <AuthProvider>
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+
+          <Route path="/" element={
+            <ProtectedRoute allowedRoles={['administrador', 'recepcion', 'seguridad']}>
+              <Dashboard />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/seguridad" element={
+            <ProtectedRoute allowedRoles={['administrador', 'seguridad', 'punto_de_control']}>
+              <SecurityPanel />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/listado" element={
+            <ProtectedRoute allowedRoles={['administrador', 'recepcion', 'seguridad']}>
+              <VisitsList />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/motivos" element={
+            <ProtectedRoute allowedRoles={['administrador']}>
+              <VisitReasons />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/areas" element={
+            <ProtectedRoute allowedRoles={['administrador', 'seguridad']}>
+              <AreasManagement />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/empresas" element={
+            <ProtectedRoute allowedRoles={['administrador']}>
+              <Companies />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/empleados" element={
+            <ProtectedRoute allowedRoles={['administrador']}>
+              <Employees />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/carnets" element={
+            <ProtectedRoute allowedRoles={['administrador']}>
+              <Badges />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/reportes" element={
+            <ProtectedRoute allowedRoles={['administrador', 'recepcion']}>
+              <Reports />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/usuarios" element={
+            <ProtectedRoute allowedRoles={['administrador', 'seguridad', 'superadmin']}>
+              <UserManagement />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/organizaciones" element={
+            <ProtectedRoute allowedRoles={['superadmin']}>
+              <OrganizationManagement />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/acerca" element={
+            <ProtectedRoute allowedRoles={['administrador', 'recepcion', 'seguridad', 'superadmin']}>
+              <About />
+            </ProtectedRoute>
+          } />
+        </Routes>
+      </Router>
+    </AuthProvider>
+  );
+}
+
+export default App;
