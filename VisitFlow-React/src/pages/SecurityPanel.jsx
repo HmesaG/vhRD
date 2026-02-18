@@ -353,16 +353,16 @@ const SecurityPanel = () => {
                     <div className="lg:col-span-2">
                         {scannedVisit ? (
                             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                                <div className="flex flex-col sm:flex-row items-stretch gap-4">
                                     <div className="flex-1">
                                         <StatusBadge visit={scannedVisit} />
                                     </div>
                                     <button
                                         onClick={handleReset}
-                                        className="bg-slate-900 border border-slate-800 text-white px-8 py-4 sm:py-0 sm:h-auto rounded-2xl font-black uppercase text-sm shadow-xl hover:bg-primary transition-all flex flex-col items-center justify-center gap-0.5 group"
+                                        className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600 text-white px-10 py-4 sm:py-0 rounded-2xl font-black uppercase text-sm shadow-lg shadow-indigo-500/20 transition-all flex flex-col items-center justify-center gap-0.5 group active:scale-95"
                                     >
-                                        <span className="group-hover:scale-110 transition-transform">Siguiente</span>
-                                        <span className="text-[10px] opacity-40 group-hover:opacity-80 normal-case font-medium">Auto en {secondsLeft}s</span>
+                                        <span className="group-hover:scale-110 transition-transform tracking-widest">Siguiente</span>
+                                        <span className="text-[10px] opacity-70 group-hover:opacity-100 normal-case font-bold">Reiniciar en {secondsLeft}s</span>
                                     </button>
                                 </div>
 
