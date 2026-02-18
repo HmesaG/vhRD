@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { db, collection, query, where, getDocs, onSnapshot } from '../firebase';
 import Layout from '../components/Layout';
 import { Shield, Search, Camera, User, Building, MapPin, CheckCircle2, XCircle, AlertTriangle, Scan } from 'lucide-react';
+import { Html5Qrcode } from 'html5-qrcode';
 
 const SecurityPanel = () => {
     const { companyId, role, user } = useAuth();
@@ -14,9 +15,7 @@ const SecurityPanel = () => {
     const [userAssignedAreas, setUserAssignedAreas] = useState([]);
     const [isCameraActive, setIsCameraActive] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
-    const videoRef = React.useRef(null);
-    const streamRef = React.useRef(null);
-    const scanTimerRef = React.useRef(null);
+    const html5QrCodeRef = React.useRef(null);
 
     // Fetch user assigned areas if punto_de_control
     useEffect(() => {
@@ -88,17 +87,38 @@ const SecurityPanel = () => {
         try {
             setIsCameraActive(true);
             setError('');
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: { facingMode: "environment" }
-            });
-            streamRef.current = stream;
-            if (videoRef.current) {
-                videoRef.current.srcObject = stream;
-                // Iniciar el bucle de escaneo cuando el video esté listo
-                videoRef.current.onloadedmetadata = () => {
-                    startScanning();
-                };
-            }
+
+            // Usar setImmediate o setTimeout para asegurar que el DOM cargó el div del lector
+            setTimeout(async () => {
+                try {
+                    const html5QrCode = new Html5Qrcode("reader");
+                    html5QrCodeRef.current = html5QrCode;
+
+                    const config = {
+                        fps: 10,
+                        qrbox: { width: 250, height: 250 },
+                        aspectRatio: 1.0
+                    };
+
+                    await html5QrCode.start(
+                        { facingMode: "environment" },
+                        config,
+                        (decodedText) => {
+                            setBadgeInput(decodedText);
+                            handleAutoSearch(decodedText);
+                        },
+                        (errorMessage) => {
+                            // Ignorar errores de escaneo (no encontró QR en este frame)
+                        }
+                    );
+                    setIsScanning(true);
+                } catch (err) {
+                    console.error("Error starting html5-qrcode:", err);
+                    setError("Error al iniciar el escáner: " + err.message);
+                    setIsCameraActive(false);
+                }
+            }, 100);
+
         } catch (err) {
             console.error("Error accessing camera:", err);
             setError("No se pudo acceder a la cámara. Verifique los permisos.");
@@ -106,56 +126,18 @@ const SecurityPanel = () => {
         }
     };
 
-    const stopCamera = () => {
-        stopScanning();
-        if (streamRef.current) {
-            streamRef.current.getTracks().forEach(track => track.stop());
-            streamRef.current = null;
-        }
-        setIsCameraActive(false);
-    };
-
-    const startScanning = async () => {
-        if (!('BarcodeDetector' in window)) {
-            setError("Su navegador no soporta el escaneo automático de QR. Por favor use Chrome o Edge en su versión más reciente.");
-            return;
-        }
-
-        const barcodeDetector = new window.BarcodeDetector({ formats: ['qr_code'] });
-        setIsScanning(true);
-
-        const scan = async () => {
-            if (!videoRef.current || !isCameraActive) return;
-
+    const stopCamera = async () => {
+        if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
             try {
-                const barcodes = await barcodeDetector.detect(videoRef.current);
-                if (barcodes.length > 0) {
-                    const qrValue = barcodes[0].rawValue;
-                    if (qrValue) {
-                        setBadgeInput(qrValue);
-                        // Ejecutar búsqueda automáticamente
-                        handleAutoSearch(qrValue);
-                        return; // Detener el bucle tras éxito
-                    }
-                }
+                await html5QrCodeRef.current.stop();
+                await html5QrCodeRef.current.clear();
             } catch (err) {
-                console.error("Error detectando código:", err);
+                console.error("Error stopping camera:", err);
             }
-
-            if (isCameraActive) {
-                scanTimerRef.current = requestAnimationFrame(scan);
-            }
-        };
-
-        scanTimerRef.current = requestAnimationFrame(scan);
-    };
-
-    const stopScanning = () => {
-        setIsScanning(false);
-        if (scanTimerRef.current) {
-            cancelAnimationFrame(scanTimerRef.current);
-            scanTimerRef.current = null;
         }
+        html5QrCodeRef.current = null;
+        setIsCameraActive(false);
+        setIsScanning(false);
     };
 
     const handleAutoSearch = async (code) => {
@@ -172,9 +154,8 @@ const SecurityPanel = () => {
             const allVisits = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
             const activeVisit = allVisits.find(v =>
-                Number(v.badge_number) === Number(code.trim()) &&
-                v.status !== 'Salida' &&
-                !v.check_out
+                Number(v.badge_number) === Number(code.trim()) ||
+                String(v.badge_number) === String(code.trim())
             );
 
             if (!activeVisit) {
@@ -293,12 +274,10 @@ const SecurityPanel = () => {
                         {!scannedVisit && !error && (
                             <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
                                 {isCameraActive ? (
-                                    <div className="relative aspect-square sm:aspect-video lg:aspect-square bg-black">
-                                        <video
-                                            ref={videoRef}
-                                            autoPlay
-                                            playsInline
-                                            className="w-full h-full object-cover"
+                                    <div className="relative aspect-square sm:aspect-video lg:aspect-square bg-black overflow-hidden">
+                                        <div
+                                            id="reader"
+                                            className="w-full h-full"
                                         />
                                         {/* Scanner Overlay */}
                                         <div className="absolute inset-0 border-[40px] border-slate-900/40 pointer-events-none">
