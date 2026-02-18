@@ -168,7 +168,7 @@ const SecurityPanel = () => {
             const allVisits = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
             const activeVisit = allVisits.find(v =>
-                String(v.badge_number) === code.trim() &&
+                Number(v.badge_number) === Number(code.trim()) &&
                 v.status !== 'Salida' &&
                 !v.check_out
             );
