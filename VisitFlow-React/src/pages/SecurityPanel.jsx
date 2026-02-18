@@ -16,6 +16,34 @@ const SecurityPanel = () => {
     const [isCameraActive, setIsCameraActive] = useState(false);
     const [isScanning, setIsScanning] = useState(false);
     const html5QrCodeRef = React.useRef(null);
+    const [secondsLeft, setSecondsLeft] = useState(10);
+
+    // Auto-refresh timer when a visit is scanned
+    useEffect(() => {
+        let timer;
+        let countdown;
+        if (scannedVisit) {
+            setSecondsLeft(10);
+            countdown = setInterval(() => {
+                setSecondsLeft(prev => prev > 0 ? prev - 1 : 0);
+            }, 1000);
+
+            timer = setTimeout(() => {
+                handleReset();
+            }, 10000);
+        }
+        return () => {
+            clearTimeout(timer);
+            clearInterval(countdown);
+        };
+    }, [scannedVisit]);
+
+    const handleReset = () => {
+        setScannedVisit(null);
+        setBadgeInput('');
+        setError('');
+        startCamera();
+    };
 
     // Fetch user assigned areas if punto_de_control
     useEffect(() => {
@@ -325,7 +353,18 @@ const SecurityPanel = () => {
                     <div className="lg:col-span-2">
                         {scannedVisit ? (
                             <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-500">
-                                <StatusBadge visit={scannedVisit} />
+                                <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                                    <div className="flex-1">
+                                        <StatusBadge visit={scannedVisit} />
+                                    </div>
+                                    <button
+                                        onClick={handleReset}
+                                        className="bg-slate-900 border border-slate-800 text-white px-8 py-4 sm:py-0 sm:h-auto rounded-2xl font-black uppercase text-sm shadow-xl hover:bg-primary transition-all flex flex-col items-center justify-center gap-0.5 group"
+                                    >
+                                        <span className="group-hover:scale-110 transition-transform">Siguiente</span>
+                                        <span className="text-[10px] opacity-40 group-hover:opacity-80 normal-case font-medium">Auto en {secondsLeft}s</span>
+                                    </button>
+                                </div>
 
                                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xl">
                                     <div className="bg-slate-50 dark:bg-slate-800/50 p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
