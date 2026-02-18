@@ -12,6 +12,9 @@ const SecurityPanel = () => {
     const [error, setError] = useState('');
     const [areas, setAreas] = useState({});
     const [userAssignedAreas, setUserAssignedAreas] = useState([]);
+    const [isCameraActive, setIsCameraActive] = useState(false);
+    const videoRef = React.useRef(null);
+    const streamRef = React.useRef(null);
 
     // Fetch user assigned areas if punto_de_control
     useEffect(() => {
@@ -69,6 +72,8 @@ const SecurityPanel = () => {
                 setScannedVisit(null);
             } else {
                 setScannedVisit(activeVisit);
+                // Si encontramos la visita, cerramos la cámara por comodidad
+                stopCamera();
             }
         } catch (err) {
             setError('Error al validar: ' + err.message);
@@ -76,6 +81,37 @@ const SecurityPanel = () => {
             setLoading(false);
         }
     };
+
+    const startCamera = async () => {
+        try {
+            setIsCameraActive(true);
+            setError('');
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: "environment" }
+            });
+            streamRef.current = stream;
+            if (videoRef.current) {
+                videoRef.current.srcObject = stream;
+            }
+        } catch (err) {
+            console.error("Error accessing camera:", err);
+            setError("No se pudo acceder a la cámara. Verifique los permisos.");
+            setIsCameraActive(false);
+        }
+    };
+
+    const stopCamera = () => {
+        if (streamRef.current) {
+            streamRef.current.getTracks().forEach(track => track.stop());
+            streamRef.current = null;
+        }
+        setIsCameraActive(false);
+    };
+
+    // Al desmontar, asegurarnos de apagar la cámara
+    useEffect(() => {
+        return () => stopCamera();
+    }, []);
 
     const StatusBadge = ({ visit }) => {
         if (!visit) return null;
@@ -173,11 +209,53 @@ const SecurityPanel = () => {
                         )}
 
                         {!scannedVisit && !error && (
-                            <div className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 p-8 rounded-3xl text-center">
-                                <div className="w-16 h-16 bg-slate-100 dark:bg-slate-800 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-400">
-                                    <Camera size={24} />
-                                </div>
-                                <p className="text-slate-500 text-sm font-medium italic">Esperando lectura de carnet...</p>
+                            <div className="bg-slate-900 border border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
+                                {isCameraActive ? (
+                                    <div className="relative aspect-square sm:aspect-video lg:aspect-square bg-black">
+                                        <video
+                                            ref={videoRef}
+                                            autoPlay
+                                            playsInline
+                                            className="w-full h-full object-cover"
+                                        />
+                                        {/* Scanner Overlay */}
+                                        <div className="absolute inset-0 border-[40px] border-slate-900/40 pointer-events-none">
+                                            <div className="w-full h-full border-2 border-primary/50 relative">
+                                                <div className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-primary" />
+                                                <div className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-primary" />
+                                                <div className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-primary" />
+                                                <div className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-primary" />
+
+                                                {/* Scanning Animation Line */}
+                                                <div className="w-full h-0.5 bg-primary/40 absolute top-0 animate-scan-line shadow-[0_0_15px_rgba(245,130,32,0.8)]" />
+                                            </div>
+                                        </div>
+
+                                        <button
+                                            onClick={stopCamera}
+                                            className="absolute bottom-4 left-1/2 -translate-x-1/2 bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded-full text-xs font-bold uppercase transition-colors"
+                                        >
+                                            Cerrar Cámara
+                                        </button>
+                                    </div>
+                                ) : (
+                                    <div className="p-10 text-center space-y-4">
+                                        <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mx-auto text-primary">
+                                            <Camera size={32} />
+                                        </div>
+                                        <div>
+                                            <p className="text-white font-bold">Escáner de Carnet</p>
+                                            <p className="text-slate-500 text-xs mt-1">Habilite su cámara para leer el código QR del visitante.</p>
+                                        </div>
+                                        <button
+                                            onClick={startCamera}
+                                            className="w-full bg-slate-800 hover:bg-slate-700 text-white py-3 rounded-2xl font-bold text-sm transition-colors flex items-center justify-center gap-2"
+                                        >
+                                            <Camera size={16} />
+                                            Activar Cámara
+                                        </button>
+                                    </div>
+                                )}
                             </div>
                         )}
                     </div>
