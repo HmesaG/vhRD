@@ -117,7 +117,7 @@ const SecurityPanel = () => {
 
     const startScanning = async () => {
         if (!('BarcodeDetector' in window)) {
-            console.log("BarcodeDetector no es soportado por este navegador.");
+            setError("Su navegador no soporta el escaneo automático de QR. Por favor use Chrome o Edge en su versión más reciente.");
             return;
         }
 
@@ -159,6 +159,10 @@ const SecurityPanel = () => {
     };
 
     const handleAutoSearch = async (code) => {
+        if (!companyId) {
+            setError('Error: ID de compañía no encontrado. Por favor reinicie sesión.');
+            return;
+        }
         setLoading(true);
         setError('');
 

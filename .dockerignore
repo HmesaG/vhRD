@@ -1,0 +1,11 @@
+node_modules
+dist
+.git
+.gitignore
+*.md
+legacy
+*.html
+firebase-config.js
+firestore.*
+firebase.json
+.firebaserc

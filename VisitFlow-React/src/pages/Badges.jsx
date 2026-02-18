@@ -303,7 +303,7 @@ const Badges = () => {
                 {/* QR Modal */}
                 {isQRModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-sm">
-                        <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3x1 shadow-2xl p-8 border border-slate-200 dark:border-slate-800 text-center animate-in zoom-in duration-200">
+                        <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-3xl shadow-2xl p-8 border border-slate-200 dark:border-slate-800 text-center animate-in zoom-in duration-200">
                             <div className="flex justify-between items-center mb-6">
                                 <h3 className="text-lg font-black text-slate-800 dark:text-white uppercase tracking-tighter">Código QR del Carnet</h3>
                                 <button onClick={() => setIsQRModalOpen(false)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
