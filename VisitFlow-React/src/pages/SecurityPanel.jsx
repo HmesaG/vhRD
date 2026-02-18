@@ -212,11 +212,11 @@ const SecurityPanel = () => {
 
         if (visit.check_out) {
             return (
-                <div className="p-6 rounded-2xl flex items-center gap-4 border bg-red-500/10 border-red-500/20 text-red-500">
-                    <XCircle size={40} />
-                    <div>
-                        <p className="text-xl font-black uppercase">Acceso Denegado</p>
-                        <p className="text-sm opacity-80">Esta visita ya registró su salida del edificio.</p>
+                <div className="p-4 sm:p-6 rounded-2xl flex items-center gap-3 sm:gap-4 border bg-red-500/10 border-red-500/20 text-red-500">
+                    <XCircle size={28} className="sm:w-10 sm:h-10 shrink-0" />
+                    <div className="min-w-0">
+                        <p className="text-base sm:text-xl font-black uppercase">Acceso Denegado</p>
+                        <p className="text-xs sm:text-sm opacity-80">Esta visita ya registró su salida del edificio.</p>
                     </div>
                 </div>
             );
@@ -224,11 +224,11 @@ const SecurityPanel = () => {
 
         if (!isAuthorizedArea) {
             return (
-                <div className="p-6 rounded-2xl flex items-center gap-4 border bg-amber-500/10 border-amber-500/20 text-amber-500">
-                    <AlertTriangle size={40} />
-                    <div>
-                        <p className="text-xl font-black uppercase">Área No Autorizada</p>
-                        <p className="text-sm opacity-80">
+                <div className="p-4 sm:p-6 rounded-2xl flex items-center gap-3 sm:gap-4 border bg-amber-500/10 border-amber-500/20 text-amber-500">
+                    <AlertTriangle size={28} className="sm:w-10 sm:h-10 shrink-0" />
+                    <div className="min-w-0">
+                        <p className="text-base sm:text-xl font-black uppercase">Área No Autorizada</p>
+                        <p className="text-xs sm:text-sm opacity-80">
                             No tienes permisos para validar el acceso a: <span className="font-bold">{targetArea?.name || 'Área Desconocida'}</span>.
                         </p>
                     </div>
@@ -237,11 +237,11 @@ const SecurityPanel = () => {
         }
 
         return (
-            <div className="p-6 rounded-2xl flex items-center gap-4 border bg-green-500/10 border-green-500/20 text-green-500">
-                <CheckCircle2 size={40} />
-                <div>
-                    <p className="text-xl font-black uppercase">Acceso Autorizado</p>
-                    <p className="text-sm opacity-80">Área permitida: {targetArea ? `${targetArea.level} - ${targetArea.name}` : 'Cualquiera'}</p>
+            <div className="p-4 sm:p-6 rounded-2xl flex items-center gap-3 sm:gap-4 border bg-green-500/10 border-green-500/20 text-green-500">
+                <CheckCircle2 size={28} className="sm:w-10 sm:h-10 shrink-0" />
+                <div className="min-w-0">
+                    <p className="text-base sm:text-xl font-black uppercase">Acceso Autorizado</p>
+                    <p className="text-xs sm:text-sm opacity-80">Área permitida: {targetArea ? `${targetArea.level} - ${targetArea.name}` : 'Cualquiera'}</p>
                 </div>
             </div>
         );
@@ -249,11 +249,11 @@ const SecurityPanel = () => {
 
     return (
         <Layout title="Centro de Validación de Seguridad">
-            <div className="max-w-5xl mx-auto space-y-6">
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8">
+            <div className="max-w-5xl mx-auto space-y-4 sm:space-y-6">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                     {/* Left Panel: Scanner/Input */}
-                    <div className="lg:col-span-1 space-y-6">
-                        <div className="bg-slate-900 border border-slate-800 p-6 lg:p-8 rounded-3xl shadow-2xl relative overflow-hidden group">
+                    <div className="lg:col-span-1 space-y-4 sm:space-y-6">
+                        <div className="bg-slate-900 border border-slate-800 p-4 sm:p-6 lg:p-8 rounded-3xl shadow-2xl relative overflow-hidden group">
                             <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
 
                             <div className="relative">
@@ -367,7 +367,7 @@ const SecurityPanel = () => {
                                 </div>
 
                                 <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xl">
-                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
                                             <User className="text-primary" size={20} />
                                             <h4 className="font-black text-slate-800 dark:text-white uppercase tracking-wider text-sm">Ficha del Visitante</h4>
@@ -375,7 +375,7 @@ const SecurityPanel = () => {
                                         <span className="bg-primary/10 text-primary text-[10px] font-black px-3 py-1 rounded-full uppercase">Expediente Activo</span>
                                     </div>
 
-                                    <div className="p-6 lg:p-8 grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+                                    <div className="p-4 sm:p-6 lg:p-8 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
                                         <div className="md:col-span-1">
                                             <div className="aspect-[4/3] md:aspect-[3/4] rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-inner">
                                                 {scannedVisit.photo_url ? (

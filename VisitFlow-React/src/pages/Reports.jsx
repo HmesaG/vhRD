@@ -247,7 +247,7 @@ const Reports = () => {
         <Layout title="Centro de Reportes">
             <div className="max-w-7xl mx-auto space-y-8">
                 {/* Header Actions */}
-                <div className="flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-slate-900 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                     <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl">
                         {[
                             { label: '7D', val: '7' },
@@ -274,7 +274,7 @@ const Reports = () => {
                 </div>
 
                 {/* Key Metrics */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
                     <StatBox title="Total Visitas" value={stats.total} icon={<Users size={18} />} trend="+12% vs mes anterior" />
                     <StatBox title="Tiempo Promedio" value={stats.avgTime} icon={<Calendar size={18} />} trend="Estancia en planta" />
                     <StatBox title="Visitas Activas" value={stats.active} icon={<UserCheck size={18} />} color="text-green-500" trend="En este momento" />
@@ -282,7 +282,7 @@ const Reports = () => {
                 </div>
 
                 {/* Main Charts */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
                     <ChartCard title="Tendencia de Tráfico">
                         <Line
                             data={getDailyData()}
@@ -307,7 +307,7 @@ const Reports = () => {
                     </ChartCard>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
                     <ChartCard title="Motivos de Acceso" className="lg:col-span-1">
                         <div className="h-64 flex items-center justify-center">
                             <Doughnut
@@ -336,7 +336,7 @@ const Reports = () => {
                 </div>
 
                 {/* Detailed Table */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden p-6">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden p-4 sm:p-6">
                     <div className="flex items-center gap-3 mb-6">
                         <div className="p-2 bg-primary/10 rounded-lg text-primary"><Building size={18} /></div>
                         <h3 className="font-bold text-slate-800 dark:text-white uppercase text-[11px] tracking-widest">Procedencia de Visitas</h3>
@@ -354,30 +354,30 @@ const Reports = () => {
 };
 
 const StatBox = ({ title, value, icon, color = "text-primary", trend }) => (
-    <div className="bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-transform hover:scale-[1.02]">
-        <div className="flex justify-between items-start">
-            <div>
-                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">{title}</p>
-                <h3 className="text-3xl font-black text-slate-800 dark:text-white tracking-tighter">{value}</h3>
+    <div className="bg-white dark:bg-slate-900 p-3 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm transition-transform hover:scale-[1.02]">
+        <div className="flex justify-between items-start gap-2">
+            <div className="min-w-0">
+                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1 leading-tight">{title}</p>
+                <h3 className="text-xl sm:text-3xl font-black text-slate-800 dark:text-white tracking-tighter">{value}</h3>
             </div>
-            <div className={`p-3 rounded-xl bg-slate-50 dark:bg-slate-800 ${color} shadow-inner`}>
+            <div className={`p-2 sm:p-3 rounded-xl bg-slate-50 dark:bg-slate-800 ${color} shadow-inner shrink-0`}>
                 {icon}
             </div>
         </div>
-        {trend && <p className="text-[10px] text-slate-400 font-bold mt-4 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-slate-300"></span> {trend}</p>}
+        {trend && <p className="text-[10px] text-slate-400 font-bold mt-3 flex items-center gap-1"><span className="w-1 h-1 rounded-full bg-slate-300"></span> {trend}</p>}
     </div>
 );
 
 const ChartCard = ({ title, children, className = "" }) => (
-    <div className={`bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm ${className}`}>
-        <h3 className="font-bold text-slate-800 dark:text-white mb-8 border-l-4 border-primary pl-3 uppercase text-[10px] tracking-widest flex items-center justify-between">
+    <div className={`bg-white dark:bg-slate-900 p-4 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm ${className}`}>
+        <h3 className="font-bold text-slate-800 dark:text-white mb-4 sm:mb-6 border-l-4 border-primary pl-3 uppercase text-[10px] tracking-widest flex items-center justify-between">
             {title}
             <div className="flex gap-1">
                 <div className="w-1 h-1 rounded-full bg-slate-200"></div>
                 <div className="w-1 h-1 rounded-full bg-slate-200"></div>
             </div>
         </h3>
-        <div className="h-64 relative">
+        <div className="h-52 sm:h-64 relative">
             {children}
         </div>
     </div>

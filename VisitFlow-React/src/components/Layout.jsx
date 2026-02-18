@@ -40,6 +40,7 @@ const Layout = ({ children, title }) => {
                 { name: 'Dashboard', path: '/', icon: 'dashboard', roles: ['administrador', 'recepcion', 'seguridad'] },
                 { name: 'Listado de Visitas', path: '/listado', icon: 'groups', roles: ['administrador', 'recepcion', 'seguridad'] },
                 { name: 'Panel Seguridad', path: '/seguridad', icon: 'security', roles: ['administrador', 'seguridad', 'punto_de_control'] },
+                { name: 'Tracking Visitantes', path: '/tracking', icon: 'route', roles: ['administrador', 'seguridad', 'superadmin'] },
             ]
         },
         {

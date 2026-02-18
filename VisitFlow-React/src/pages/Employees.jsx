@@ -239,21 +239,21 @@ const Employees = () => {
         <Layout title="Gestión de Empleados">
             <div className="max-w-6xl mx-auto space-y-6">
                 {/* Search Header */}
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-center gap-4">
+                <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-3">
                     <div className="relative flex-1 w-full">
-                        <span className="absolute left-3 top-3 md:top-2.5 text-slate-400">
-                            <Search size={18} />
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                            <Search size={16} />
                         </span>
                         <input
                             type="text"
-                            placeholder="Buscar empleado por nombre, área o email..."
+                            placeholder="Buscar empleado..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 md:py-2 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary shadow-inner"
+                            className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary shadow-inner"
                         />
                     </div>
                     {role === 'superadmin' && (
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar">
                             <input
                                 type="file"
                                 accept=".csv"

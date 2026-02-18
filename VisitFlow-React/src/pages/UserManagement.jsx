@@ -177,10 +177,10 @@ const UserManagement = () => {
     return (
         <Layout title="Seguridad y Usuarios">
             <div className="max-w-6xl mx-auto space-y-6">
-                <div className="flex flex-col md:flex-row gap-4 items-center justify-between">
+                <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
                     <p className="text-slate-500 text-sm italic font-medium">Gestión de acceso por organización y roles.</p>
-                    <button onClick={() => { setEditingUser(null); setFormData({ email: '', role: 'recepcion', uid: '', companyId: currentUserCompanyId }); setIsModalOpen(true); }} className="w-full md:w-auto bg-primary text-white px-6 py-3 md:py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all justify-center">
-                        <UserPlus size={18} /> Vincular Usuario
+                    <button onClick={() => { setEditingUser(null); setFormData({ email: '', role: 'recepcion', uid: '', companyId: currentUserCompanyId }); setIsModalOpen(true); }} className="w-full sm:w-auto bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all justify-center">
+                        <UserPlus size={16} /> Vincular Usuario
                     </button>
                 </div>
 
@@ -193,10 +193,10 @@ const UserManagement = () => {
 
                 {isModalOpen && (
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
-                        <div className="bg-white dark:bg-slate-900 w-full max-w-md my-8 rounded-3xl shadow-2xl p-6 lg:p-8 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in duration-200">
-                            <div className="flex justify-between items-center mb-6">
-                                <h3 className="text-xl font-bold text-slate-800 dark:text-white uppercase tracking-tight">{editingUser ? 'Editar Perfil' : 'Vincular Usuario'}</h3>
-                                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={24} /></button>
+                        <div className="bg-white dark:bg-slate-900 w-full max-w-md my-8 rounded-3xl shadow-2xl p-4 sm:p-6 lg:p-8 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in duration-200">
+                            <div className="flex justify-between items-center mb-4 sm:mb-6">
+                                <h3 className="text-base sm:text-xl font-bold text-slate-800 dark:text-white uppercase tracking-tight">{editingUser ? 'Editar Perfil' : 'Vincular Usuario'}</h3>
+                                <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={22} /></button>
                             </div>
 
                             <form onSubmit={handleSubmit} className="space-y-4">

@@ -203,24 +203,24 @@ const Badges = () => {
             <div className="max-w-4xl mx-auto space-y-6">
 
                 {/* Search Header */}
-                <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-center gap-4">
-                    <div className="relative flex-1 w-full">
-                        <span className="absolute left-3 top-3 md:top-2.5 text-slate-400">
-                            <Search size={18} />
+                <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+                    <div className="relative">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                            <Search size={16} />
                         </span>
                         <input
                             type="text"
-                            placeholder="Buscar carnet por número..."
+                            placeholder="Buscar carnet..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-10 pr-4 py-3 md:py-2 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary shadow-inner uppercase"
+                            className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary shadow-inner uppercase"
                         />
                     </div>
                 </div>
 
-                <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 lg:p-6">
-                    <h2 className="text-lg font-bold text-slate-800 dark:text-white mb-4">Registro Masivo por Nomenclatura</h2>
-                    <form onSubmit={handleAdd} className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 sm:p-6">
+                    <h2 className="text-base sm:text-lg font-bold text-slate-800 dark:text-white mb-4">Registro Masivo por Nomenclatura</h2>
+                    <form onSubmit={handleAdd} className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
                         <div className="space-y-1">
                             <label className="block text-[10px] font-bold text-slate-400 uppercase ml-1">Prefijo (Opcional)</label>
                             <input

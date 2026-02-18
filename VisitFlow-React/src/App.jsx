@@ -11,6 +11,7 @@ import UserManagement from './pages/UserManagement';
 import OrganizationManagement from './pages/OrganizationManagement';
 import AreasManagement from './pages/AreasManagement';
 import SecurityPanel from './pages/SecurityPanel';
+import VisitorTracking from './pages/VisitorTracking';
 import About from './pages/About';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -36,6 +37,12 @@ function App() {
           <Route path="/seguridad" element={
             <ProtectedRoute allowedRoles={['administrador', 'seguridad', 'punto_de_control']}>
               <SecurityPanel />
+            </ProtectedRoute>
+          } />
+
+          <Route path="/tracking" element={
+            <ProtectedRoute allowedRoles={['administrador', 'seguridad', 'superadmin']}>
+              <VisitorTracking />
             </ProtectedRoute>
           } />
 
