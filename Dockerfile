@@ -1,14 +1,17 @@
 # Build Stage
 FROM node:18-alpine AS build
 WORKDIR /app
-COPY package*.json ./
+# Entramos en la carpeta del proyecto React
+COPY VisitFlow-React/package*.json ./
 RUN npm install
-COPY . .
+COPY VisitFlow-React/ .
 RUN npm run build
 
 # Production Stage
 FROM nginx:stable-alpine
+# Los archivos compilados estarán en /app/dist dentro de la imagen de build
 COPY --from=build /app/dist /usr/share/nginx/html
+# Copiamos el nginx.conf que ahora está en la raíz
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 EXPOSE 80
 CMD ["nginx", "-g", "daemon off;"]
