@@ -13,8 +13,10 @@ const SecurityPanel = () => {
     const [areas, setAreas] = useState({});
     const [userAssignedAreas, setUserAssignedAreas] = useState([]);
     const [isCameraActive, setIsCameraActive] = useState(false);
+    const [isScanning, setIsScanning] = useState(false);
     const videoRef = React.useRef(null);
     const streamRef = React.useRef(null);
+    const scanTimerRef = React.useRef(null);
 
     // Fetch user assigned areas if punto_de_control
     useEffect(() => {
@@ -92,6 +94,10 @@ const SecurityPanel = () => {
             streamRef.current = stream;
             if (videoRef.current) {
                 videoRef.current.srcObject = stream;
+                // Iniciar el bucle de escaneo cuando el video esté listo
+                videoRef.current.onloadedmetadata = () => {
+                    startScanning();
+                };
             }
         } catch (err) {
             console.error("Error accessing camera:", err);
@@ -101,11 +107,83 @@ const SecurityPanel = () => {
     };
 
     const stopCamera = () => {
+        stopScanning();
         if (streamRef.current) {
             streamRef.current.getTracks().forEach(track => track.stop());
             streamRef.current = null;
         }
         setIsCameraActive(false);
+    };
+
+    const startScanning = async () => {
+        if (!('BarcodeDetector' in window)) {
+            console.log("BarcodeDetector no es soportado por este navegador.");
+            return;
+        }
+
+        const barcodeDetector = new window.BarcodeDetector({ formats: ['qr_code'] });
+        setIsScanning(true);
+
+        const scan = async () => {
+            if (!videoRef.current || !isCameraActive) return;
+
+            try {
+                const barcodes = await barcodeDetector.detect(videoRef.current);
+                if (barcodes.length > 0) {
+                    const qrValue = barcodes[0].rawValue;
+                    if (qrValue) {
+                        setBadgeInput(qrValue);
+                        // Ejecutar búsqueda automáticamente
+                        handleAutoSearch(qrValue);
+                        return; // Detener el bucle tras éxito
+                    }
+                }
+            } catch (err) {
+                console.error("Error detectando código:", err);
+            }
+
+            if (isCameraActive) {
+                scanTimerRef.current = requestAnimationFrame(scan);
+            }
+        };
+
+        scanTimerRef.current = requestAnimationFrame(scan);
+    };
+
+    const stopScanning = () => {
+        setIsScanning(false);
+        if (scanTimerRef.current) {
+            cancelAnimationFrame(scanTimerRef.current);
+            scanTimerRef.current = null;
+        }
+    };
+
+    const handleAutoSearch = async (code) => {
+        setLoading(true);
+        setError('');
+
+        try {
+            const q = query(collection(db, 'visits'), where('companyId', '==', companyId));
+            const querySnapshot = await getDocs(q);
+            const allVisits = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+            const activeVisit = allVisits.find(v =>
+                String(v.badge_number) === code.trim() &&
+                v.status !== 'Salida' &&
+                !v.check_out
+            );
+
+            if (!activeVisit) {
+                setError('No se encontró visita activa para el carnet: ' + code);
+            } else {
+                setScannedVisit(activeVisit);
+                stopCamera();
+            }
+        } catch (err) {
+            setError('Error: ' + err.message);
+        } finally {
+            setLoading(false);
+        }
     };
 
     // Al desmontar, asegurarnos de apagar la cámara
