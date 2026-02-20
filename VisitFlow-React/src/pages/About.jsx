@@ -1,15 +1,18 @@
 import React from 'react';
 import Layout from '../components/Layout';
 import { useAuth } from '../context/AuthContext';
-import { ShieldCheck, Calendar, Users, Building2, BadgeCheck, Cpu, Database, Zap, Phone, MessageCircle, Mail as MailIcon, Instagram, Facebook, Linkedin } from 'lucide-react';
+import { ShieldCheck, Calendar, Users, Building2, BadgeCheck, Cpu, Database, Zap, Phone, Mail as MailIcon, Instagram, Facebook, Linkedin, Filter, BarChart3, MessageCircle } from 'lucide-react';
 
 const About = () => {
     const { user, companyData } = useAuth();
     const features = [
-        { icon: <div className="w-6 h-6"><img src="/logo.png" className="w-full h-full object-contain" /></div>, title: 'Seguridad Avanzada', desc: 'Control de acceso granular por roles y validación de puntos de control.' },
+        { icon: <img src="/logo.png" className="w-10 h-10 object-contain" />, title: 'Seguridad Avanzada', desc: 'Control de acceso granular por roles y validación de puntos de control.' },
         { icon: <Calendar size={24} />, title: 'Gestión en Tiempo Real', desc: 'Monitoreo dinámico de entradas y salidas de visitantes.' },
         { icon: <Users size={24} />, title: 'Multi-Empresa', desc: 'Arquitectura diseñada para gestionar múltiples organizaciones de forma segregada.' },
-        { icon: <BadgeCheck size={24} />, title: 'Identificación QR', desc: 'Generación y validación de carnets mediante códigos QR únicos.' }
+        { icon: <BadgeCheck size={24} />, title: 'Identificación QR', desc: 'Generación y validación de carnets mediante códigos QR únicos.' },
+        { icon: <Filter size={24} />, title: 'Filtros Dinámicos', desc: 'Búsqueda avanzada y filtrado de datos por múltiples criterios.' },
+        { icon: <BarChart3 size={24} />, title: 'Análisis de Datos', desc: 'Visualización estadística y reportes personalizados del flujo de visitas.' },
+        { icon: <MessageCircle size={24} />, title: 'Soporte WhatsApp', desc: 'Asistencia técnica inmediata y resolución de dudas en tiempo real.' }
     ];
 
     const techStack = [
@@ -31,7 +34,7 @@ const About = () => {
                         />
                     </div>
                     <h1 className="text-4xl font-black text-slate-800 dark:text-white tracking-tighter uppercase">
-                        VisitFlow <span className="text-primary">v1.0.0</span>
+                        VisitFlow <span className="text-primary">v2.1.0</span>
                     </h1>
                     <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto text-lg leading-relaxed">
                         Solución integral de vanguardia para la gestión, control y seguridad de accesos en entornos corporativos modernos.
@@ -130,24 +133,7 @@ const About = () => {
                     </p>
                 </div>
 
-                {/* Botón Flotante de Soporte */}
-                <a
-                    href={`https://wa.me/18097649811?text=${encodeURIComponent(
-                        `*SOLICITUD DE SOPORTE - VISITFLOW*\n\n` +
-                        `*Organización:* ${companyData?.name || 'No especificada'}\n` +
-                        `*Usuario:* ${user?.email || 'Desconocido'}\n` +
-                        `*RNC:* ${companyData?.rnc || 'N/A'}\n\n` +
-                        `Hola, necesito asistencia técnica con el sistema.`
-                    )}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="fixed bottom-8 right-8 bg-[#25D366] text-white p-4 rounded-full shadow-[0_10px_25px_rgba(37,211,102,0.3)] hover:scale-110 hover:shadow-[0_15px_30px_rgba(37,211,102,0.4)] transition-all z-50 group flex items-center gap-3"
-                >
-                    <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-500 font-bold text-sm">
-                        Soporte Técnico
-                    </span>
-                    <MessageCircle size={28} />
-                </a>
+
             </div>
         </Layout>
     );

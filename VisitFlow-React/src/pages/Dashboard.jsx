@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db, collection, onSnapshot, query, orderBy, limit, doc, updateDoc, deleteDoc, serverTimestamp, where } from '../firebase';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
-import { Camera, Calendar, User, Building, LogOut, Mail, Send, Trash2 } from 'lucide-react';
+import { Camera, Calendar, User, Building, LogOut, Mail, Send, Trash2, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const StatCard = ({ title, value, icon, color = "text-primary" }) => (
@@ -22,6 +22,7 @@ const Dashboard = () => {
     const [stats, setStats] = useState({ today: 0, active: 0, pending: 0 });
     const [recentVisits, setRecentVisits] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState('');
     const [now, setNow] = useState(new Date());
 
     useEffect(() => {
@@ -54,7 +55,7 @@ const Dashboard = () => {
                 const dateB = b.check_in?.toDate ? b.check_in.toDate() : new Date(0);
                 return dateB - dateA;
             });
-            setRecentVisits(docs.slice(0, 10));
+            setRecentVisits(docs);
             const today = new Date().toDateString();
             const todayVisits = docs.filter(v => v.check_in && v.check_in.toDate().toDateString() === today);
             setStats({
@@ -70,6 +71,12 @@ const Dashboard = () => {
         });
         return () => unsubscribe();
     }, [companyId]);
+
+    const filteredVisits = recentVisits.filter(v =>
+        (v.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (v.company || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (v.employee || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
 
     const handleCheckOut = async (id) => {
         if (confirm('¿Registrar salida de este visitante?')) {
@@ -229,14 +236,28 @@ const Dashboard = () => {
                 </div>
 
                 <div className="space-y-3">
-                    <div className="flex justify-between items-center px-1">
+                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 px-1">
                         <h3 className="font-bold uppercase text-[10px] tracking-widest text-slate-400">Visitas Recientes</h3>
+                        <div className="relative w-full sm:w-64">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                <Search size={14} />
+                            </span>
+                            <input
+                                type="text"
+                                placeholder="Buscar visita..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-9 pr-4 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs focus:ring-2 focus:ring-primary shadow-sm"
+                            />
+                        </div>
                     </div>
                     <DataTable
                         columns={columns}
-                        data={recentVisits}
+                        data={filteredVisits}
                         loading={loading}
-                        emptyMessage="Aún no hay visitas registradas hoy."
+                        emptyMessage="No se encontraron visitas."
+                        paginate={true}
+                        pageSize={10}
                     />
                 </div>
             </div>

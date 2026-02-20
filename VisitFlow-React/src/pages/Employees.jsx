@@ -14,6 +14,7 @@ const Employees = () => {
     const [isEditing, setIsEditing] = useState(false);
     const [editingId, setEditingId] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const [filterArea, setFilterArea] = useState('all');
     const [importing, setImporting] = useState(false);
 
     useEffect(() => {
@@ -167,11 +168,19 @@ const Employees = () => {
         link.click();
     };
 
-    const filteredEmployees = employees.filter(emp =>
-        emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        emp.area.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (emp.email && emp.email.toLowerCase().includes(searchTerm.toLowerCase()))
-    );
+    // Unique areas from current employee list for the filter dropdown
+    const uniqueAreas = [...new Set(employees.map(e => e.area).filter(Boolean))].sort();
+
+    const filteredEmployees = employees.filter(emp => {
+        const matchSearch =
+            emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (emp.email && emp.email.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (emp.whatsapp && emp.whatsapp.includes(searchTerm));
+        const matchArea = filterArea === 'all' || emp.area === filterArea;
+        return matchSearch && matchArea;
+    });
+
+    const clearFilters = () => { setSearchTerm(''); setFilterArea('all'); };
 
     const columns = [
         {
@@ -238,45 +247,75 @@ const Employees = () => {
     return (
         <Layout title="Gestión de Empleados">
             <div className="max-w-6xl mx-auto space-y-6">
-                {/* Search Header */}
-                <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col sm:flex-row items-start sm:items-center gap-3">
-                    <div className="relative flex-1 w-full">
-                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                            <Search size={16} />
-                        </span>
-                        <input
-                            type="text"
-                            placeholder="Buscar empleado..."
-                            value={searchTerm}
-                            onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary shadow-inner"
-                        />
-                    </div>
-                    {role === 'superadmin' && (
-                        <div className="flex gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar">
+                {/* Filter bar */}
+                <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                    <div className="flex flex-col sm:flex-row gap-2">
+                        {/* Search */}
+                        <div className="relative flex-1">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                <Search size={15} />
+                            </span>
                             <input
-                                type="file"
-                                accept=".csv"
-                                onChange={handleImportCSV}
-                                className="hidden"
-                                id="csv-import"
+                                type="text"
+                                placeholder="Buscar por nombre, email o WhatsApp..."
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                                className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary shadow-inner"
                             />
-                            <label
-                                htmlFor="csv-import"
-                                className={`flex items-center gap-2 px-4 py-2 bg-navy text-white rounded-lg text-xs font-bold cursor-pointer hover:bg-navy/90 transition-all ${importing ? 'opacity-50 pointer-events-none' : ''}`}
-                            >
-                                <Download size={14} /> {importing ? 'Importando...' : 'Importar CSV'}
-                            </label>
-                            <button
-                                onClick={downloadTemplate}
-                                className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-200 transition-all"
-                                title="Descargar Plantilla"
-                            >
-                                <Download size={14} className="rotate-180" /> Plantilla
-                            </button>
                         </div>
-                    )}
+
+                        {/* Area filter */}
+                        <select
+                            value={filterArea}
+                            onChange={(e) => setFilterArea(e.target.value)}
+                            className="px-3 py-2.5 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary shadow-inner text-slate-700 dark:text-slate-300 min-w-[160px]"
+                        >
+                            <option value="all">Todas las áreas</option>
+                            {uniqueAreas.map(area => (
+                                <option key={area} value={area}>{area}</option>
+                            ))}
+                        </select>
+                    </div>
+
+                    {/* Meta row */}
+                    <div className="flex items-center justify-between">
+                        <span className="text-[10px] text-slate-400 font-medium">
+                            {filteredEmployees.length} empleado{filteredEmployees.length !== 1 ? 's' : ''}
+                        </span>
+                        {(searchTerm || filterArea !== 'all') && (
+                            <button
+                                onClick={clearFilters}
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border border-red-200 dark:border-red-800"
+                            >
+                                <X size={11} /> Limpiar filtros
+                            </button>
+                        )}
+                    </div>
                 </div>
+                {role === 'superadmin' && (
+                    <div className="flex gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar">
+                        <input
+                            type="file"
+                            accept=".csv"
+                            onChange={handleImportCSV}
+                            className="hidden"
+                            id="csv-import"
+                        />
+                        <label
+                            htmlFor="csv-import"
+                            className={`flex items-center gap-2 px-4 py-2 bg-navy text-white rounded-lg text-xs font-bold cursor-pointer hover:bg-navy/90 transition-all ${importing ? 'opacity-50 pointer-events-none' : ''}`}
+                        >
+                            <Download size={14} /> {importing ? 'Importando...' : 'Importar CSV'}
+                        </label>
+                        <button
+                            onClick={downloadTemplate}
+                            className="flex items-center gap-2 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-lg text-xs font-bold hover:bg-slate-200 transition-all"
+                            title="Descargar Plantilla"
+                        >
+                            <Download size={14} className="rotate-180" /> Plantilla
+                        </button>
+                    </div>
+                )}
 
                 <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 lg:p-6 italic">
                     <div className="flex justify-between items-center mb-4">

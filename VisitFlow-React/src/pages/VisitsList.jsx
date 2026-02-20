@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { db, collection, onSnapshot, query, orderBy, doc, updateDoc, deleteDoc, serverTimestamp, where } from '../firebase';
+import { db, collection, onSnapshot, query, doc, updateDoc, serverTimestamp, where } from '../firebase';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
-import { LogOut, Mail, Send, Trash2, Camera, Search } from 'lucide-react';
+import { LogOut, Mail, Send, Camera, Search, Filter, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const VisitsList = () => {
@@ -10,6 +10,8 @@ const VisitsList = () => {
     const [visits, setVisits] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
+    const [filterStatus, setFilterStatus] = useState('all');   // 'all' | 'active' | 'finished'
+    const [filterDate, setFilterDate] = useState('all');       // 'all' | 'today' | 'week' | 'month'
     const [now, setNow] = useState(new Date());
 
     useEffect(() => {
@@ -31,10 +33,7 @@ const VisitsList = () => {
 
     useEffect(() => {
         if (!companyId) return;
-        const q = query(
-            collection(db, 'visits'),
-            where('companyId', '==', companyId)
-        );
+        const q = query(collection(db, 'visits'), where('companyId', '==', companyId));
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
             docs.sort((a, b) => {
@@ -51,10 +50,7 @@ const VisitsList = () => {
     const handleCheckOut = async (id) => {
         if (confirm('¿Registrar salida de este visitante?')) {
             try {
-                await updateDoc(doc(db, 'visits', id), {
-                    check_out: serverTimestamp(),
-                    status: 'Salida'
-                });
+                await updateDoc(doc(db, 'visits', id), { check_out: serverTimestamp(), status: 'Salida' });
             } catch (err) { alert('Error: ' + err.message); }
         }
     };
@@ -62,22 +58,58 @@ const VisitsList = () => {
     const handleEmail = (row) => {
         if (!row.visitor_email) return alert('El empleado no tiene email registrado.');
         const subject = encodeURIComponent(`Aviso de Visita: ${row.full_name}`);
-        const body = encodeURIComponent(`Hola ${row.employee},\n\nTe informamos que ${row.full_name} de la empresa ${row.company} se encuentra en recepción para una visita por el motivo: ${row.reason}.\n\nSaludos,\nSistema de Visitas.`);
+        const body = encodeURIComponent(`Hola ${row.employee},\n\nTe informamos que ${row.full_name} de la empresa ${row.company} se encuentra en recepción.\n\nSaludos,\nSistema de Visitas.`);
         window.location.href = `mailto:${row.visitor_email}?subject=${subject}&body=${body}`;
     };
 
     const handleWhatsApp = (row) => {
         if (!row.visitor_phone) return alert('El empleado no tiene WhatsApp registrado.');
         const phone = row.visitor_phone.replace(/\D/g, '');
-        const text = encodeURIComponent(`Hola, ${row.employee}. El visitante ${row.full_name} de la empresa ${row.company} ha llegado para verte.`);
+        const text = encodeURIComponent(`Hola, ${row.employee}. El visitante ${row.full_name} de ${row.company} ha llegado para verte.`);
         window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
     };
 
-    const filteredVisits = visits.filter(v =>
-        v.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        v.company?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    // ── Filtering logic ──────────────────────────────────────────────────────
+    const isInDateRange = (visit) => {
+        if (filterDate === 'all') return true;
+        if (!visit.check_in) return false;
+        const d = visit.check_in.toDate();
+        const today = new Date();
+        if (filterDate === 'today') {
+            return d.toDateString() === today.toDateString();
+        }
+        if (filterDate === 'week') {
+            const weekAgo = new Date(today); weekAgo.setDate(today.getDate() - 7);
+            return d >= weekAgo;
+        }
+        if (filterDate === 'month') {
+            return d.getMonth() === today.getMonth() && d.getFullYear() === today.getFullYear();
+        }
+        return true;
+    };
 
+    const filteredVisits = visits.filter(v => {
+        const matchSearch =
+            v.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            v.company?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            v.employee?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            v.reason?.toLowerCase().includes(searchTerm.toLowerCase());
+        const matchStatus =
+            filterStatus === 'all' ||
+            (filterStatus === 'active' && !v.check_out) ||
+            (filterStatus === 'finished' && !!v.check_out);
+        return matchSearch && matchStatus && isInDateRange(v);
+    });
+
+    const activeFilters = (filterStatus !== 'all' ? 1 : 0) + (filterDate !== 'all' ? 1 : 0);
+
+    const clearFilters = () => {
+        setFilterStatus('all');
+        setFilterDate('all');
+        setSearchTerm('');
+    };
+
+    // ── Columns ──────────────────────────────────────────────────────────────
     const columns = [
         {
             header: 'Foto',
@@ -173,26 +205,14 @@ const VisitsList = () => {
             render: (row) => (
                 <div className="flex justify-end gap-0.5">
                     {!row.check_out && (
-                        <button
-                            onClick={() => handleCheckOut(row.id)}
-                            className="p-1.5 text-primary hover:bg-primary/10 rounded-lg transition-colors"
-                            title="Registrar Salida"
-                        >
+                        <button onClick={() => handleCheckOut(row.id)} className="p-1.5 text-primary hover:bg-primary/10 rounded-lg transition-colors" title="Registrar Salida">
                             <LogOut size={15} />
                         </button>
                     )}
-                    <button
-                        onClick={() => handleEmail(row)}
-                        className="p-1.5 text-slate-400 hover:text-navy hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                        title="Notificar por Email"
-                    >
+                    <button onClick={() => handleEmail(row)} className="p-1.5 text-slate-400 hover:text-navy hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Notificar por Email">
                         <Mail size={15} />
                     </button>
-                    <button
-                        onClick={() => handleWhatsApp(row)}
-                        className="p-1.5 text-slate-400 hover:text-green-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-                        title="Notificar por WhatsApp"
-                    >
+                    <button onClick={() => handleWhatsApp(row)} className="p-1.5 text-slate-400 hover:text-green-600 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" title="Notificar por WhatsApp">
                         <Send size={15} />
                     </button>
                 </div>
@@ -200,22 +220,88 @@ const VisitsList = () => {
         }
     ];
 
+    // ── Render ───────────────────────────────────────────────────────────────
     return (
         <Layout title="Control de Visitas">
-            <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
-                {/* Search bar */}
-                <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+            <div className="max-w-7xl mx-auto space-y-3 sm:space-y-4">
+
+                {/* Filter bar */}
+                <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
+                    {/* Search */}
                     <div className="relative">
                         <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                            <Search size={16} />
+                            <Search size={15} />
                         </span>
                         <input
                             type="text"
-                            placeholder="Buscar por nombre o empresa..."
+                            placeholder="Buscar por nombre, empresa, empleado o motivo..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary shadow-inner"
                         />
+                    </div>
+
+                    {/* Filter chips row */}
+                    <div className="flex flex-wrap gap-2 items-center">
+                        <span className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-widest shrink-0">
+                            <Filter size={11} /> Filtros
+                        </span>
+
+                        {/* Status filter */}
+                        <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg">
+                            {[
+                                { val: 'all', label: 'Todos' },
+                                { val: 'active', label: 'En Planta' },
+                                { val: 'finished', label: 'Finalizados' },
+                            ].map(opt => (
+                                <button
+                                    key={opt.val}
+                                    onClick={() => setFilterStatus(opt.val)}
+                                    className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all ${filterStatus === opt.val
+                                        ? 'bg-white dark:bg-slate-700 text-primary shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                        }`}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Date filter */}
+                        <div className="flex gap-1 bg-slate-100 dark:bg-slate-800 p-0.5 rounded-lg">
+                            {[
+                                { val: 'all', label: 'Siempre' },
+                                { val: 'today', label: 'Hoy' },
+                                { val: 'week', label: '7 días' },
+                                { val: 'month', label: 'Este mes' },
+                            ].map(opt => (
+                                <button
+                                    key={opt.val}
+                                    onClick={() => setFilterDate(opt.val)}
+                                    className={`px-3 py-1 rounded-md text-[11px] font-bold transition-all ${filterDate === opt.val
+                                        ? 'bg-white dark:bg-slate-700 text-primary shadow-sm'
+                                        : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'
+                                        }`}
+                                >
+                                    {opt.label}
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* Clear filters */}
+                        {(activeFilters > 0 || searchTerm) && (
+                            <button
+                                onClick={clearFilters}
+                                className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-[11px] font-bold text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors border border-red-200 dark:border-red-800"
+                            >
+                                <X size={11} /> Limpiar
+                            </button>
+                        )}
+
+                        {/* Result count */}
+                        <span className="ml-auto text-[10px] text-slate-400 font-medium">
+                            {filteredVisits.length} resultado{filteredVisits.length !== 1 ? 's' : ''}
+                        </span>
                     </div>
                 </div>
 
@@ -223,7 +309,7 @@ const VisitsList = () => {
                     columns={columns}
                     data={filteredVisits}
                     loading={loading}
-                    emptyMessage="No se encontraron visitas."
+                    emptyMessage="No se encontraron visitas con los filtros aplicados."
                 />
             </div>
         </Layout>

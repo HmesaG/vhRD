@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { db, collection, onSnapshot, query, doc, setDoc, updateDoc, deleteDoc, getDocs, orderBy, where } from '../firebase';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
-import { UserPlus, Shield, Mail, Trash2, Key, Building, Edit2, X, CheckCircle2, Layers } from 'lucide-react';
+import { UserPlus, Shield, Mail, Trash2, Key, Building, Edit2, X, CheckCircle2, Layers, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const UserManagement = () => {
@@ -13,6 +13,7 @@ const UserManagement = () => {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
     const [formData, setFormData] = useState({ uid: '', email: '', role: 'recepcion', companyId: '', assignedAreas: [] });
 
     useEffect(() => {
@@ -28,6 +29,8 @@ const UserManagement = () => {
 
         const unsubscribe = onSnapshot(q, (snapshot) => {
             const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            // Sort by email
+            data.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
             setUsers(data);
             setLoading(false);
         });
@@ -99,6 +102,12 @@ const UserManagement = () => {
         }
     };
 
+    const filteredUsers = users.filter(u =>
+        (u.email || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        u.id.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     const columns = [
         {
             header: 'Usuario',
@@ -132,11 +141,13 @@ const UserManagement = () => {
             header: 'Rol y Acceso',
             render: (row) => (
                 <div className="space-y-1">
-                    <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${row.role === 'administrador' ? 'bg-navy text-white' :
-                        row.role === 'superadmin' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800'
-                        }`}>
-                        {row.role}
-                    </span>
+                    <div className="flex items-center gap-2">
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-black uppercase tracking-wider ${row.role === 'administrador' ? 'bg-navy text-white' :
+                            row.role === 'superadmin' ? 'bg-primary text-white' : 'bg-slate-100 text-slate-600 dark:bg-slate-800'
+                            }`}>
+                            {row.role}
+                        </span>
+                    </div>
                     {row.role === 'punto_de_control' && row.assignedAreas && row.assignedAreas.length > 0 && (
                         <div className="flex flex-wrap gap-1 mt-1">
                             {row.assignedAreas.map(areaId => {
@@ -178,7 +189,18 @@ const UserManagement = () => {
         <Layout title="Seguridad y Usuarios">
             <div className="max-w-6xl mx-auto space-y-6">
                 <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-                    <p className="text-slate-500 text-sm italic font-medium">Gestión de acceso por organización y roles.</p>
+                    <div className="relative flex-1 w-full max-w-md">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                            <Search size={15} />
+                        </span>
+                        <input
+                            type="text"
+                            placeholder="Buscar por email, rol o UID..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-primary shadow-sm"
+                        />
+                    </div>
                     <button onClick={() => { setEditingUser(null); setFormData({ email: '', role: 'recepcion', uid: '', companyId: currentUserCompanyId }); setIsModalOpen(true); }} className="w-full sm:w-auto bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all justify-center">
                         <UserPlus size={16} /> Vincular Usuario
                     </button>
@@ -186,9 +208,9 @@ const UserManagement = () => {
 
                 <DataTable
                     columns={columns}
-                    data={users}
+                    data={filteredUsers}
                     loading={loading}
-                    emptyMessage="No hay usuarios registrados."
+                    emptyMessage="No se encontraron usuarios con esos criterios."
                 />
 
                 {isModalOpen && (
@@ -198,6 +220,7 @@ const UserManagement = () => {
                                 <h3 className="text-base sm:text-xl font-bold text-slate-800 dark:text-white uppercase tracking-tight">{editingUser ? 'Editar Perfil' : 'Vincular Usuario'}</h3>
                                 <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={22} /></button>
                             </div>
+
 
                             <form onSubmit={handleSubmit} className="space-y-4">
                                 <div className="space-y-1.5">
@@ -239,6 +262,8 @@ const UserManagement = () => {
                                         </select>
                                     </div>
                                 </div>
+
+
 
                                 {formData.role === 'punto_de_control' && (
                                     <div className="space-y-4 bg-slate-50 dark:bg-slate-800/50 p-4 lg:p-6 rounded-2xl border border-slate-200 dark:border-slate-700 mt-4 transition-all animate-in fade-in slide-in-from-top-2">

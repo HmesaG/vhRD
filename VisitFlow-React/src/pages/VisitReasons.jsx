@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext';
 import { db, collection, addDoc, onSnapshot, doc, deleteDoc, query, where, updateDoc } from '../firebase';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
-import { Trash2, MessageCircle, Settings2, Search, Edit2, X } from 'lucide-react';
+import { Trash2, ClipboardList, Settings2, Search, Edit2, X } from 'lucide-react';
 
 const VisitReasons = () => {
     const { companyId } = useAuth();
@@ -92,7 +92,7 @@ const VisitReasons = () => {
                     ? 'bg-orange-50 dark:bg-orange-900/10 text-primary border-orange-100 dark:border-orange-900/20'
                     : 'bg-slate-50 dark:bg-slate-900/10 text-slate-400 border-slate-100 dark:border-slate-800'
                     }`}>
-                    <MessageCircle size={18} />
+                    <ClipboardList size={18} />
                 </div>
             )
         },

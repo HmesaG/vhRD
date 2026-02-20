@@ -11,6 +11,7 @@ export const AuthProvider = ({ children }) => {
     const [role, setRole] = useState(null);
     const [companyId, setCompanyId] = useState(null);
     const [companyData, setCompanyData] = useState(null);
+    const [userData, setUserData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -33,14 +34,15 @@ export const AuthProvider = ({ children }) => {
                             const userDoc = await getDoc(userDocRef);
 
                             if (userDoc.exists()) {
-                                const userData = userDoc.data();
-                                console.log('User data loaded:', userData);
-                                setRole(userData.role || 'recepcion');
-                                setCompanyId(userData.companyId || null);
+                                const data = userDoc.data();
+                                console.log('User data loaded:', data);
+                                setUserData(data);
+                                setRole(data.role || 'recepcion');
+                                setCompanyId(data.companyId || null);
 
-                                if (userData.companyId) {
+                                if (data.companyId) {
                                     try {
-                                        const compDoc = await getDoc(doc(db, 'organizations', userData.companyId));
+                                        const compDoc = await getDoc(doc(db, 'organizations', data.companyId));
                                         if (compDoc.exists()) {
                                             setCompanyData(compDoc.data());
                                             console.log('Company data loaded:', compDoc.data());
@@ -104,6 +106,7 @@ export const AuthProvider = ({ children }) => {
                     } else {
                         console.log('No user authenticated');
                         setUser(null);
+                        setUserData(null);
                         setRole(null);
                         setCompanyId(null);
                         setCompanyData(null);
@@ -131,7 +134,7 @@ export const AuthProvider = ({ children }) => {
 
     // Always render children, even if loading (to prevent blank screen)
     return (
-        <AuthContext.Provider value={{ user, role, companyId, companyData, loading, error }}>
+        <AuthContext.Provider value={{ user, userData, role, companyId, companyData, loading, error }}>
             {children}
         </AuthContext.Provider>
     );

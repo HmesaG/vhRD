@@ -9,6 +9,7 @@ const OrganizationManagement = () => {
     const [loading, setLoading] = useState(true);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingOrg, setEditingOrg] = useState(null);
+    const [searchTerm, setSearchTerm] = useState('');
 
     // Removed logo_url, renamed nit -> rnc
     const [formData, setFormData] = useState({
@@ -24,7 +25,9 @@ const OrganizationManagement = () => {
     useEffect(() => {
         const q = query(collection(db, 'organizations'));
         const unsubscribe = onSnapshot(q, (snapshot) => {
-            setOrganizations(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+            setOrganizations(data);
             setLoading(false);
         });
         return () => unsubscribe();
@@ -102,6 +105,12 @@ const OrganizationManagement = () => {
         } catch (error) { alert("Error: " + error.message); }
     };
 
+    const filteredOrganizations = organizations.filter(o =>
+        (o.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (o.rnc || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (o.email || '').toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
     const columns = [
         {
             header: 'Empresa / Organización',
@@ -159,17 +168,30 @@ const OrganizationManagement = () => {
     return (
         <Layout title="Mantenimiento de Organizaciones">
             <div className="p-8 max-w-6xl mx-auto space-y-8">
-                <div className="flex justify-between items-end">
-                    <div>
-                        <h2 className="text-2xl font-black text-slate-800 dark:text-white tracking-tight">Suscripciones ERP</h2>
-                        <p className="text-sm text-slate-500 mt-1">Gestiona las empresas que utilizan el sistema VisitFlow.</p>
+                <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
+                    <div className="relative flex-1 w-full max-w-md">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                            <Search size={15} />
+                        </span>
+                        <input
+                            type="text"
+                            placeholder="Buscar por nombre, RNC o email..."
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
+                            className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-primary shadow-sm"
+                        />
                     </div>
-                    <button onClick={() => setIsModalOpen(true)} className="bg-primary text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all">
+                    <button onClick={() => setIsModalOpen(true)} className="w-full sm:w-auto bg-primary text-white px-6 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-all justify-center">
                         <Plus size={18} /> Nueva Organización
                     </button>
                 </div>
 
-                <DataTable columns={columns} data={organizations} loading={loading} />
+                <DataTable
+                    columns={columns}
+                    data={filteredOrganizations}
+                    loading={loading}
+                    emptyMessage="No se encontraron organizaciones con esos criterios."
+                />
 
                 {isModalOpen && (
                     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { signInWithEmailAndPassword, auth, sendPasswordResetEmail } from '../firebase';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogIn, Lock, Mail, ArrowLeft, Send, Phone, Globe, Instagram, Facebook, Linkedin, MessageCircle, X, User } from 'lucide-react';
+import { LogIn, Lock, Mail, ArrowLeft, Send, Phone, Globe, Instagram, Facebook, Linkedin, X, User } from 'lucide-react';
 
 const Login = () => {
     const { user } = useAuth();
@@ -65,7 +65,8 @@ const Login = () => {
             `*Número:* ${requestData.phone}\n\n` +
             `Hola, me gustaría recibir más información sobre VisitFlow.`;
 
-        window.open(`https://wa.me/18097649811?text=${encodeURIComponent(message)}`, '_blank');
+        const waUrl = `https://wa.me/18097649811?text=${encodeURIComponent(message)}`;
+        window.open(waUrl, '_blank');
         setIsRequestModalOpen(false);
         setRequestData({ name: '', email: '', phone: '' });
     };
@@ -74,9 +75,8 @@ const Login = () => {
         <div className="min-h-screen bg-slate-950 flex flex-col items-center p-4 sm:p-6 relative overflow-x-hidden">
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,130,32,0.15),transparent_70%)] pointer-events-none" />
 
-            {/* Login Form Container - Mobile Optimized */}
+            {/* Login Form Container */}
             <div className="w-full max-w-md relative z-10 flex-shrink-0 flex flex-col pt-12 pb-20 sm:py-24">
-                {/* Brand Identity */}
                 <div className="text-center mb-10 group">
                     <div className="w-32 h-32 sm:w-48 sm:h-48 mx-auto mb-8 sm:mb-10 transform group-hover:scale-105 transition-all duration-700">
                         <img
@@ -110,7 +110,7 @@ const Login = () => {
                     </div>
 
                     {error && (
-                        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold animate-shake">
+                        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold">
                             {error}
                         </div>
                     )}
@@ -125,9 +125,7 @@ const Login = () => {
                         <div className="space-y-2">
                             <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Email Corporativo</label>
                             <div className="relative group">
-                                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
-                                    <Mail size={18} />
-                                </div>
+                                <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" />
                                 <input
                                     required
                                     type="email"
@@ -156,9 +154,7 @@ const Login = () => {
                                     </button>
                                 </div>
                                 <div className="relative group">
-                                    <div className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors">
-                                        <Lock size={18} />
-                                    </div>
+                                    <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" />
                                     <input
                                         required
                                         type="password"
@@ -187,13 +183,11 @@ const Login = () => {
                         </button>
                     </form>
                 </div>
-
             </div>
 
-            {/* Premium Optimized Footer - Mobile Responsive */}
+            {/* Footer */}
             <div className="w-full max-w-6xl relative z-10 pt-16 pb-12 mt-12 border-t border-slate-900/50">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-12 text-left px-6 sm:px-8">
-                    {/* Propiedad Intelectual */}
                     <div className="space-y-6">
                         <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.25em]">Propiedad Intelectual</h3>
                         <div className="space-y-4">
@@ -201,18 +195,14 @@ const Login = () => {
                                 GRUPO MESA<br /><span className="text-primary">VASQUEZ (GMV)</span>
                             </p>
                             <div className="space-y-2">
-                                <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.1em]">
-                                    © 2026 VISITFLOW
-                                </p>
+                                <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.1em]">© 2026 VISITFLOW</p>
                                 <p className="text-slate-600 text-[10px] sm:text-[9px] font-bold uppercase tracking-[0.15em] leading-relaxed">
-                                    SISTEMAS DE CONTROL DE ACCESO<br />
-                                    TODOS LOS DERECHOS RESERVADOS
+                                    SISTEMAS DE CONTROL DE ACCESO<br />TODOS LOS DERECHOS RESERVADOS
                                 </p>
                             </div>
                         </div>
                     </div>
 
-                    {/* Canales Oficiales */}
                     <div className="space-y-6">
                         <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.25em]">Canales Oficiales</h3>
                         <div className="space-y-4">
@@ -231,7 +221,6 @@ const Login = () => {
                         </div>
                     </div>
 
-                    {/* Soporte Técnico */}
                     <div className="space-y-6">
                         <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.25em]">Soporte Técnico</h3>
                         <div className="space-y-4">
@@ -245,17 +234,16 @@ const Login = () => {
                     </div>
                 </div>
 
-                {/* Social Links & System Meta */}
                 <div className="mt-20 pt-10 border-t border-slate-900 flex flex-col md:flex-row items-center justify-between gap-8 px-6 sm:px-8">
                     <div className="flex items-center gap-8 sm:gap-10">
                         <a href="#" className="text-slate-600 hover:text-primary transition-all hover:scale-125 duration-300">
-                            <Instagram size={20} strokeWidth={2.5} />
+                            <Instagram size={20} />
                         </a>
                         <a href="#" className="text-slate-600 hover:text-blue-500 transition-all hover:scale-125 duration-300">
-                            <Facebook size={20} strokeWidth={2.5} />
+                            <Facebook size={20} />
                         </a>
                         <a href="https://www.linkedin.com/company/grupo-mesa-vasquez/" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-blue-400 transition-all hover:scale-125 duration-300">
-                            <Linkedin size={20} strokeWidth={2.5} />
+                            <Linkedin size={20} />
                         </a>
                     </div>
                     <div className="flex items-center gap-4">
@@ -265,84 +253,94 @@ const Login = () => {
                 </div>
             </div>
 
-            {/* Chat-Style Request Modal - Mobile Responsive */}
+            {/* Floating button for Request Service */}
+            <button
+                onClick={() => setIsRequestModalOpen(true)}
+                className="fixed bottom-8 right-8 w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all z-[99] group border-4 border-slate-950"
+            >
+                <div className="absolute inset-0 rounded-full animate-ping bg-primary opacity-20 pointer-events-none" />
+                <Send size={28} className="relative z-10 group-hover:rotate-12 transition-transform" />
+            </button>
+
+            {/* Request Service Modal */}
             {isRequestModalOpen && (
-                <div className="fixed bottom-24 right-4 left-4 sm:left-auto sm:right-8 sm:w-[350px] bg-slate-900 rounded-[2rem] shadow-2xl border border-white/10 z-[60] overflow-hidden animate-in fade-in slide-in-from-bottom-5 duration-300">
-                    <div className="bg-primary p-6 relative">
+                <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
+                    <div className="bg-slate-900 w-full max-w-sm rounded-[2rem] border border-slate-800 shadow-2xl p-8 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity rotate-12">
+                            <Send size={120} className="text-primary" />
+                        </div>
+
                         <button
                             onClick={() => setIsRequestModalOpen(false)}
-                            className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
+                            className="absolute top-6 right-6 p-2 text-slate-500 hover:text-white transition-colors z-20"
                         >
                             <X size={20} />
                         </button>
-                        <h3 className="text-white font-black text-lg tracking-tight italic">VisitFlow Support</h3>
-                        <p className="text-white/70 text-[10px] font-bold uppercase tracking-widest mt-1">Chat de Solicitud</p>
-                    </div>
 
-                    <div className="p-6 space-y-4">
-                        <div className="bg-slate-950/50 p-4 rounded-2xl border border-white/[0.03]">
-                            <p className="text-slate-300 text-xs font-medium leading-relaxed">
-                                ¡Hola! 👋 Déjanos tus datos y un asesor se pondrá en contacto contigo de inmediato.
-                            </p>
+                        <div className="relative z-10 space-y-6">
+                            <div className="space-y-2">
+                                <h3 className="text-2xl font-black text-white italic tracking-tight uppercase leading-none">Solicitar <span className="text-primary">Servicio</span></h3>
+                                <p className="text-slate-400 text-xs font-bold leading-relaxed">Completa tus datos para enviarte una propuesta personalizada via WhatsApp.</p>
+                            </div>
+
+                            <form onSubmit={handleRequestService} className="space-y-4">
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Tu Nombre</label>
+                                    <div className="relative group">
+                                        <User size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" />
+                                        <input
+                                            required
+                                            type="text"
+                                            placeholder="Nombre completo"
+                                            className="w-full bg-slate-950 border-none ring-1 ring-slate-800 focus:ring-2 focus:ring-primary rounded-xl py-3 pl-11 text-sm text-white transition-all outline-none"
+                                            value={requestData.name}
+                                            onChange={(e) => setRequestData({ ...requestData, name: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Correo Electrónico</label>
+                                    <div className="relative group">
+                                        <Mail size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" />
+                                        <input
+                                            required
+                                            type="email"
+                                            placeholder="ejemplo@correo.com"
+                                            className="w-full bg-slate-950 border-none ring-1 ring-slate-800 focus:ring-2 focus:ring-primary rounded-xl py-3 pl-11 text-sm text-white transition-all outline-none"
+                                            value={requestData.email}
+                                            onChange={(e) => setRequestData({ ...requestData, email: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Teléfono / WhatsApp</label>
+                                    <div className="relative group">
+                                        <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" />
+                                        <input
+                                            required
+                                            type="tel"
+                                            placeholder="809.123.4567"
+                                            className="w-full bg-slate-950 border-none ring-1 ring-slate-800 focus:ring-2 focus:ring-primary rounded-xl py-3 pl-11 text-sm text-white transition-all outline-none"
+                                            value={requestData.phone}
+                                            onChange={(e) => setRequestData({ ...requestData, phone: e.target.value })}
+                                        />
+                                    </div>
+                                </div>
+
+                                <button
+                                    type="submit"
+                                    className="w-full bg-primary hover:brightness-110 text-white font-black py-4 rounded-xl shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 active:scale-95 text-xs uppercase tracking-widest"
+                                >
+                                    Enviar solicitud
+                                    <Send size={16} />
+                                </button>
+                            </form>
                         </div>
-
-                        <form onSubmit={handleRequestService} className="space-y-3">
-                            <div className="relative group">
-                                <User className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={16} />
-                                <input
-                                    required
-                                    type="text"
-                                    placeholder="Nombre completo"
-                                    className="w-full bg-slate-950 border border-white/5 rounded-xl py-3 pl-11 text-xs text-white outline-none focus:border-primary/50 transition-all font-bold"
-                                    value={requestData.name}
-                                    onChange={(e) => setRequestData({ ...requestData, name: e.target.value })}
-                                />
-                            </div>
-                            <div className="relative group">
-                                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={16} />
-                                <input
-                                    required
-                                    type="email"
-                                    placeholder="Correo electrónico"
-                                    className="w-full bg-slate-950 border border-white/5 rounded-xl py-3 pl-11 text-xs text-white outline-none focus:border-primary/50 transition-all font-bold"
-                                    value={requestData.email}
-                                    onChange={(e) => setRequestData({ ...requestData, email: e.target.value })}
-                                />
-                            </div>
-                            <div className="relative group">
-                                <Phone className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" size={16} />
-                                <input
-                                    required
-                                    type="tel"
-                                    placeholder="WhatsApp / Teléfono"
-                                    className="w-full bg-slate-950 border border-white/5 rounded-xl py-3 pl-11 text-xs text-white outline-none focus:border-primary/50 transition-all font-bold"
-                                    value={requestData.phone}
-                                    onChange={(e) => setRequestData({ ...requestData, phone: e.target.value })}
-                                />
-                            </div>
-                            <button
-                                type="submit"
-                                className="w-full bg-primary hover:bg-primary/90 text-white font-black py-4 rounded-xl text-[10px] uppercase tracking-[0.2em] shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-2 mt-4"
-                            >
-                                <Send size={14} /> Iniciar Conversación
-                            </button>
-                        </form>
                     </div>
                 </div>
             )}
-
-            {/* Floating Request Button Trigger */}
-            <button
-                onClick={() => setIsRequestModalOpen(!isRequestModalOpen)}
-                className={`fixed bottom-8 right-8 ${isRequestModalOpen ? 'bg-red-500 shadow-red-500/20' : 'bg-[#25D366] shadow-[#25D366]/30'} text-white p-4 rounded-full shadow-2xl hover:scale-110 transition-all z-50 group flex items-center gap-3`}
-            >
-                <div className="flex flex-col items-end">
-                    <span className="max-w-0 overflow-hidden whitespace-nowrap group-hover:max-w-xs transition-all duration-500 font-black text-[10px] uppercase tracking-[0.2em]">
-                        {isRequestModalOpen ? 'Cerrar Chat' : 'Solicitar Servicio'}
-                    </span>
-                </div>
-                {isRequestModalOpen ? <X size={28} /> : <MessageCircle size={28} />}
-            </button>
         </div>
     );
 };
