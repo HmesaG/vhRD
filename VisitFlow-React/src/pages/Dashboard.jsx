@@ -230,9 +230,9 @@ const Dashboard = () => {
             <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto w-full">
                 {/* Stats — 1 col on xs, 3 cols on sm+ */}
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                    <StatCard title="Visitas Hoy" value={stats.today} icon={<Calendar size={16} />} />
-                    <StatCard title="En Planta" value={stats.active} icon={<Building size={16} />} color="text-green-500" />
-                    <StatCard title="Alertas" value={stats.pending} icon={<User size={16} />} color="text-red-500" />
+                    <StatCard title="VISITAS HOY" value={stats.today} icon={<Calendar size={16} />} />
+                    <StatCard title="EN PLANTA" value={stats.active} icon={<Building size={16} />} color="text-green-500" />
+                    <StatCard title="ALERTAS" value={stats.pending} icon={<User size={16} />} color="text-red-500" />
                 </div>
 
                 <div className="space-y-3">

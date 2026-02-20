@@ -6,13 +6,13 @@ import { ShieldCheck, Calendar, Users, Building2, BadgeCheck, Cpu, Database, Zap
 const About = () => {
     const { user, companyData } = useAuth();
     const features = [
-        { icon: <img src="/logo.png" className="w-10 h-10 object-contain" />, title: 'Seguridad Avanzada', desc: 'Control de acceso granular por roles y validación de puntos de control.' },
-        { icon: <Calendar size={24} />, title: 'Gestión en Tiempo Real', desc: 'Monitoreo dinámico de entradas y salidas de visitantes.' },
-        { icon: <Users size={24} />, title: 'Multi-Empresa', desc: 'Arquitectura diseñada para gestionar múltiples organizaciones de forma segregada.' },
-        { icon: <BadgeCheck size={24} />, title: 'Identificación QR', desc: 'Generación y validación de carnets mediante códigos QR únicos.' },
-        { icon: <Filter size={24} />, title: 'Filtros Dinámicos', desc: 'Búsqueda avanzada y filtrado de datos por múltiples criterios.' },
-        { icon: <BarChart3 size={24} />, title: 'Análisis de Datos', desc: 'Visualización estadística y reportes personalizados del flujo de visitas.' },
-        { icon: <MessageCircle size={24} />, title: 'Soporte WhatsApp', desc: 'Asistencia técnica inmediata y resolución de dudas en tiempo real.' }
+        { icon: <ShieldCheck size={24} />, title: 'SEGURIDAD AVANZADA', desc: 'Control de acceso granular por roles y validación de puntos de control.' },
+        { icon: <Calendar size={24} />, title: 'GESTIÓN EN TIEMPO REAL', desc: 'Monitoreo dinámico de entradas y salidas de visitantes.' },
+        { icon: <Users size={24} />, title: 'MULTI-EMPRESA', desc: 'Arquitectura diseñada para gestionar múltiples organizaciones de forma segregada.' },
+        { icon: <BadgeCheck size={24} />, title: 'IDENTIFICACIÓN QR', desc: 'Generación y validación de carnets mediante códigos QR únicos.' },
+        { icon: <Filter size={24} />, title: 'FILTROS DINÁMICOS', desc: 'Búsqueda avanzada y filtrado de datos por múltiples criterios.' },
+        { icon: <BarChart3 size={24} />, title: 'ANÁLISIS DE DATOS', desc: 'Visualización estadística y reportes personalizados del flujo de visitas.' },
+        { icon: <MessageCircle size={24} />, title: 'SOPORTE WHATSAPP', desc: 'Asistencia técnica inmediata y resolución de dudas en tiempo real.' }
     ];
 
     const techStack = [

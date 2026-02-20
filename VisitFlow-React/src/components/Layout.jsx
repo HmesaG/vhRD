@@ -2,13 +2,13 @@ import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { auth, signOut } from '../firebase';
-import { LogOut, Sun, Moon, Bell, Menu, Plus, MessageCircle, X } from 'lucide-react';
+import { LogOut, Sun, Moon, Bell, Menu, Plus, MessageCircle, X, Send, Building2, Users } from 'lucide-react';
 import VisitModal from './VisitModal';
 
 const SidebarContent = ({ companyData, role, location, handleLogout, user }) => {
     const menuSections = [
         {
-            title: 'Operaciones',
+            title: 'OPERACIONES',
             items: [
                 { name: 'Dashboard', path: '/', icon: 'dashboard', roles: ['administrador', 'recepcion', 'seguridad'] },
                 { name: 'Listado de Visitas', path: '/listado', icon: 'groups', roles: ['administrador', 'recepcion', 'seguridad'] },
@@ -17,7 +17,7 @@ const SidebarContent = ({ companyData, role, location, handleLogout, user }) => 
             ]
         },
         {
-            title: 'Catálogos',
+            title: 'CATÁLOGOS',
             items: [
                 { name: 'Empleados', path: '/empleados', icon: 'person_search', roles: ['administrador'] },
                 { name: 'Empresas', path: '/empresas', icon: 'business', roles: ['administrador'] },
@@ -25,7 +25,7 @@ const SidebarContent = ({ companyData, role, location, handleLogout, user }) => 
             ]
         },
         {
-            title: 'Configuracion',
+            title: 'CONFIGURACIÓN',
             items: [
                 { name: 'Áreas y Niveles', path: '/areas', icon: 'layers', roles: ['administrador', 'seguridad'] },
                 { name: 'Motivos de Visita', path: '/motivos', icon: 'assignment', roles: ['administrador'] },
@@ -34,13 +34,13 @@ const SidebarContent = ({ companyData, role, location, handleLogout, user }) => 
             ]
         },
         {
-            title: 'Análisis',
+            title: 'ANÁLISIS',
             items: [
                 { name: 'Reportes', path: '/reportes', icon: 'analytics', roles: ['administrador', 'recepcion'] },
             ]
         },
         {
-            title: 'Información',
+            title: 'INFORMACIÓN',
             items: [
                 { name: 'Acerca de', path: '/acerca', icon: 'info', roles: ['administrador', 'recepcion', 'seguridad', 'superadmin'] },
             ]
@@ -190,42 +190,64 @@ const Layout = ({ children, title }) => {
 
             <button
                 onClick={() => setIsSupportModalOpen(true)}
-                className="fixed bottom-6 right-6 w-14 h-14 bg-[#25D366] text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all z-[99] border-4 border-white dark:border-slate-900 group"
+                className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all z-[99] border-4 border-white dark:border-slate-900 group"
             >
-                <div className="absolute inset-0 rounded-full animate-ping bg-[#25D366] opacity-20 pointer-events-none" />
-                <MessageCircle size={32} fill="currentColor" className="relative z-10" />
+                <div className="absolute inset-0 rounded-full animate-ping bg-primary opacity-20 pointer-events-none" />
+                <Send size={28} className="relative z-10 translate-x-[-1px]" />
             </button>
 
             {isSupportModalOpen && (
                 <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2rem] border border-slate-100 dark:border-slate-800 shadow-2xl p-8 relative overflow-hidden">
+                    <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-2xl p-8 relative overflow-hidden">
+                        {/* Decorative background element */}
+                        <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl invisible dark:visible" />
+
                         <button onClick={() => setIsSupportModalOpen(false)} className="absolute top-6 right-6 p-2 text-slate-400 hover:text-red-500 transition-colors z-20">
                             <X size={20} />
                         </button>
+
                         <div className="relative z-10 space-y-6">
+                            <div className="space-y-2 text-center">
+                                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto mb-4">
+                                    <Send size={32} />
+                                </div>
+                                <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Soporte Técnico</h3>
+                                <p className="text-slate-500 dark:text-slate-400 text-xs font-bold px-4 uppercase tracking-widest leading-relaxed">
+                                    Estamos aquí para ayudarte a optimizar tu flujo de trabajo.
+                                </p>
+                            </div>
+
+                            <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-3xl space-y-4 border border-slate-100 dark:border-slate-800/50">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-sm">
+                                        <Building2 size={16} />
+                                    </div>
+                                    <div className="overflow-hidden">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Organización</p>
+                                        <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">{companyData?.name || 'Sistema Global'}</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-sm">
+                                        <Users size={16} />
+                                    </div>
+                                    <div className="overflow-hidden">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Usuario Activo</p>
+                                        <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">{user?.email}</p>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div className="space-y-2">
-                                <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Soporte <span className="text-[#25D366]">GMV</span></h3>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs font-bold">Confirma tus datos para enviarlos a soporte técnico:</p>
-                            </div>
-                            <div className="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl space-y-3 border border-slate-100 dark:border-slate-800">
-                                <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Empresa</p>
-                                    <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{companyData?.name || 'No especificada'}</p>
-                                </div>
-                                <div>
-                                    <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Usuario</p>
-                                    <p className="text-xs font-bold text-slate-700 dark:text-slate-200">{user?.email}</p>
-                                </div>
-                            </div>
-                            <div className="space-y-1.5">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Descripción del problema</label>
+                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Detalle del Requerimiento</label>
                                 <textarea
-                                    className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-2xl py-3 px-4 text-sm text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-[#25D366] min-h-[80px] resize-none"
-                                    placeholder="¿Cómo podemos ayudarte?..."
+                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-3xl py-4 px-5 text-sm text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-primary min-h-[100px] resize-none transition-all placeholder:text-slate-400"
+                                    placeholder="Explícanos brevemente tu consulta..."
                                     value={supportMessage}
                                     onChange={(e) => setSupportMessage(e.target.value)}
                                 />
                             </div>
+
                             <button
                                 onClick={() => {
                                     const text = `*SOPORTE TÉCNICO VISITFLOW*\n\n🏢 *Empresa:* ${companyData?.name || 'No especificada'}\n👤 *Usuario:* ${user?.email}\n📅 *Fecha:* ${new Date().toLocaleString()}\n📝 *Caso:* ${supportMessage || 'Sin descripción'}`;
@@ -233,10 +255,10 @@ const Layout = ({ children, title }) => {
                                     setIsSupportModalOpen(false);
                                     setSupportMessage('');
                                 }}
-                                className="w-full bg-[#25D366] hover:brightness-110 text-white font-black py-4 rounded-2xl shadow-xl transition-all flex items-center justify-center gap-3 active:scale-95 text-xs uppercase tracking-widest"
+                                className="w-full bg-primary hover:brightness-110 text-white font-black py-4 rounded-3xl shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 active:scale-95 text-xs uppercase tracking-widest group"
                             >
-                                Enviar WhatsApp
-                                <MessageCircle size={18} fill="currentColor" />
+                                Iniciar Conversación
+                                <Send size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                             </button>
                         </div>
                     </div>

@@ -113,7 +113,7 @@ const OrganizationManagement = () => {
 
     const columns = [
         {
-            header: 'Empresa / Organización',
+            header: 'EMPRESA / ORGANIZACIÓN',
             render: (row) => (
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center text-primary overflow-hidden border border-primary/20">
@@ -132,7 +132,7 @@ const OrganizationManagement = () => {
             )
         },
         {
-            header: 'Contacto',
+            header: 'CONTACTO',
             render: (row) => (
                 <div className="space-y-1">
                     <p className="text-xs text-slate-600 dark:text-slate-400 flex items-center gap-1.5">
@@ -145,7 +145,7 @@ const OrganizationManagement = () => {
             )
         },
         {
-            header: 'Acciones',
+            header: 'ACCIONES',
             className: 'text-right',
             render: (row) => (
                 <div className="flex justify-end gap-1">
