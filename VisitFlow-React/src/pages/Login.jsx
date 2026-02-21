@@ -212,11 +212,11 @@ const Login = () => {
                                 </div>
                                 <span className="text-xs font-black tracking-tight">809.764.9811</span>
                             </a>
-                            <a href="https://grupomvrd.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 text-slate-400 hover:text-white transition-all duration-300 group">
+                            <a href="https://www.grupomvrd.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 text-slate-400 hover:text-white transition-all duration-300 group">
                                 <div className="flex items-center justify-center w-10 h-10 bg-slate-900 rounded-xl group-hover:bg-primary/20 border border-white/[0.02] group-hover:border-primary/30 transition-all">
                                     <Globe size={16} className="text-primary/60 group-hover:text-primary" />
                                 </div>
-                                <span className="text-xs font-black uppercase tracking-tight">grupomvrd.com</span>
+                                <span className="text-xs font-black uppercase tracking-tight">www.grupomvrd.com</span>
                             </a>
                         </div>
                     </div>

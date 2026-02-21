@@ -93,7 +93,7 @@ const About = () => {
                                             <Phone size={12} className="text-primary" /> 809.764.9811
                                         </div>
                                         <a href="https://www.grupomvrd.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[11px] font-bold text-slate-300 hover:text-primary transition-colors">
-                                            <Zap size={12} className="text-primary" /> grupomvrd.com
+                                            <Zap size={12} className="text-primary" /> www.grupomvrd.com
                                         </a>
                                     </div>
                                 </div>
