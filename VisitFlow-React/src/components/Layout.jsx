@@ -180,9 +180,28 @@ const Layout = ({ children, title }) => {
                         </button>
                     </div>
                 </header>
-                <div className="flex-1 overflow-y-auto px-4 py-6 lg:p-8">
+                <div className="flex-1 overflow-y-auto px-4 py-6 lg:p-8 pb-24 lg:pb-8">
                     {children}
                 </div>
+
+                {/* Bottom Navigation for Mobile */}
+                <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-6 py-3 flex justify-between items-center z-40 pb-safe-offset-2">
+                    {[
+                        { name: 'Inicio', path: '/', icon: 'dashboard' },
+                        { name: 'Visitas', path: '/listado', icon: 'groups' },
+                        { name: 'Acceso', path: '/seguridad', icon: 'security' },
+                        { name: 'Rutas', path: '/tracking', icon: 'route' },
+                    ].map((item) => (
+                        <Link
+                            key={item.path}
+                            to={item.path}
+                            className={`flex flex-col items-center gap-1 transition-colors ${location.pathname === item.path ? 'text-primary' : 'text-slate-400'}`}
+                        >
+                            <span className="material-icons-outlined text-2xl">{item.icon}</span>
+                            <span className="text-[10px] font-bold uppercase tracking-tighter">{item.name}</span>
+                        </Link>
+                    ))}
+                </nav>
             </main>
 
             {/* Modals & Floating Buttons */}
@@ -190,7 +209,7 @@ const Layout = ({ children, title }) => {
 
             <button
                 onClick={() => setIsSupportModalOpen(true)}
-                className="fixed bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all z-[99] border-4 border-white dark:border-slate-900 group"
+                className="fixed bottom-24 sm:bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all z-[99] border-4 border-white dark:border-slate-900 group"
             >
                 <div className="absolute inset-0 rounded-full animate-ping bg-primary opacity-20 pointer-events-none" />
                 <Send size={28} className="relative z-10 translate-x-[-1px]" />
