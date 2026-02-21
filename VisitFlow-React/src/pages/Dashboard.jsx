@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { db, collection, onSnapshot, query, orderBy, limit, doc, updateDoc, deleteDoc, serverTimestamp, where } from '../firebase';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
-import { Camera, Calendar, User, Building, LogOut, Mail, Send, Trash2, Search } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Camera, Calendar, User, Building, LogOut, Mail, Send, Trash2, Search, Shield, Users, BarChart3, PlusCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import VisitModal from '../components/VisitModal';
 
 const StatCard = ({ title, value, icon, color = "text-primary" }) => (
     <div className="bg-white dark:bg-slate-900 p-3 sm:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
@@ -24,6 +26,17 @@ const Dashboard = () => {
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
     const [now, setNow] = useState(new Date());
+    const [isVisitModalOpen, setIsVisitModalOpen] = useState(false);
+    const navigate = useNavigate();
+
+    const quickActions = [
+        { name: 'Nueva Visita', icon: <PlusCircle size={24} />, path: 'modal', color: 'bg-primary/10 text-primary', roles: ['administrador', 'recepcion', 'seguridad'] },
+        { name: 'Registrar Acceso', icon: <Shield size={24} />, path: '/seguridad', color: 'bg-blue-500/10 text-blue-500', roles: ['administrador', 'seguridad', 'punto_de_control'] },
+        { name: 'Listado Visitas', icon: <Calendar size={24} />, path: '/listado', color: 'bg-green-500/10 text-green-500', roles: ['administrador', 'recepcion', 'seguridad'] },
+        { name: 'Gestión Usuarios', icon: <Users size={24} />, path: '/usuarios', color: 'bg-purple-500/10 text-purple-500', roles: ['administrador', 'superadmin'] },
+        { name: 'Reportes', icon: <BarChart3 size={24} />, path: '/reportes', color: 'bg-amber-500/10 text-amber-500', roles: ['administrador', 'recepcion'] },
+        { name: 'Acerca de', icon: <User size={24} />, path: '/acerca', color: 'bg-slate-500/10 text-slate-500', roles: ['administrador', 'recepcion', 'seguridad', 'superadmin', 'punto_de_control'] },
+    ].filter(action => role === 'superadmin' || action.roles.includes(role));
 
     useEffect(() => {
         const timer = setInterval(() => setNow(new Date()), 60000);
@@ -226,40 +239,69 @@ const Dashboard = () => {
     ];
 
     return (
-        <Layout title="Dashboard Overview">
-            <div className="space-y-4 sm:space-y-6 max-w-7xl mx-auto w-full">
-                {/* Stats — 1 col on xs, 3 cols on sm+ */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
-                    <StatCard title="VISITAS HOY" value={stats.today} icon={<Calendar size={16} />} />
-                    <StatCard title="EN PLANTA" value={stats.active} icon={<Building size={16} />} color="text-green-500" />
-                    <StatCard title="ALERTAS" value={stats.pending} icon={<User size={16} />} color="text-red-500" />
+        <Layout title="VisitFlow Hub">
+            <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full pb-10">
+                {/* Mobile Quick Actions Hub - Only on small screens */}
+                <div className="lg:hidden animate-in fade-in slide-in-from-top-4 duration-700">
+                    <div className="flex items-center justify-between mb-4 px-1">
+                        <h3 className="font-black uppercase text-[10px] tracking-widest text-slate-400">Acciones Rápidas</h3>
+                        <span className="text-[9px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase">PWA Mode</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                        {quickActions.map((action, i) => (
+                            <button
+                                key={i}
+                                onClick={() => {
+                                    if (action.path === 'modal') setIsVisitModalOpen(true);
+                                    else navigate(action.path);
+                                }}
+                                className="flex flex-col items-center justify-center p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 shadow-sm active:scale-95 transition-all gap-3"
+                            >
+                                <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${action.color}`}>
+                                    {action.icon}
+                                </div>
+                                <span className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-tighter text-center">{action.name}</span>
+                            </button>
+                        ))}
+                    </div>
                 </div>
 
-                <div className="space-y-3">
-                    <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 px-1">
-                        <h3 className="font-bold uppercase text-[10px] tracking-widest text-slate-400">Visitas Recientes</h3>
-                        <div className="relative w-full sm:w-64">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
-                                <Search size={14} />
-                            </span>
-                            <input
-                                type="text"
-                                placeholder="Buscar visita..."
-                                value={searchTerm}
-                                onChange={(e) => setSearchTerm(e.target.value)}
-                                className="w-full pl-9 pr-4 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs focus:ring-2 focus:ring-primary shadow-sm"
-                            />
-                        </div>
+                {/* Desktop Stats and Recent - Hidden for restricted roles on mobile if desired, or kept for everyone */}
+                <div className={`${role === 'punto_de_control' ? 'hidden lg:block' : ''} space-y-6 sm:space-y-8`}>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4">
+                        <StatCard title="VISITAS HOY" value={stats.today} icon={<Calendar size={16} />} />
+                        <StatCard title="EN PLANTA" value={stats.active} icon={<Building size={16} />} color="text-green-500" />
+                        <StatCard title="ALERTAS" value={stats.pending} icon={<User size={16} />} color="text-red-500" />
                     </div>
-                    <DataTable
-                        columns={columns}
-                        data={filteredVisits}
-                        loading={loading}
-                        emptyMessage="No se encontraron visitas."
-                        paginate={true}
-                        pageSize={10}
-                    />
+
+                    <div className="space-y-3">
+                        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 px-1">
+                            <h3 className="font-bold uppercase text-[10px] tracking-widest text-slate-400">Actividad Reciente</h3>
+                            <div className="relative w-full sm:w-64">
+                                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">
+                                    <Search size={14} />
+                                </span>
+                                <input
+                                    type="text"
+                                    placeholder="Buscar visita..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                    className="w-full pl-9 pr-4 py-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-lg text-xs focus:ring-2 focus:ring-primary shadow-sm"
+                                />
+                            </div>
+                        </div>
+                        <DataTable
+                            columns={columns}
+                            data={filteredVisits}
+                            loading={loading}
+                            emptyMessage="No se encontraron visitas."
+                            paginate={true}
+                            pageSize={10}
+                        />
+                    </div>
                 </div>
+
+                <VisitModal isOpen={isVisitModalOpen} onClose={() => setIsVisitModalOpen(false)} />
             </div>
         </Layout>
     );

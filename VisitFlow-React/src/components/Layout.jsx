@@ -185,13 +185,13 @@ const Layout = ({ children, title }) => {
                 </div>
 
                 {/* Bottom Navigation for Mobile */}
-                <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-6 py-3 flex justify-between items-center z-40 pb-safe-offset-2">
+                <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 px-6 py-3 flex justify-around items-center z-[100] pb-safe-offset-2">
                     {[
-                        { name: 'Inicio', path: '/', icon: 'dashboard' },
-                        { name: 'Visitas', path: '/listado', icon: 'groups' },
-                        { name: 'Acceso', path: '/seguridad', icon: 'security' },
-                        { name: 'Rutas', path: '/tracking', icon: 'route' },
-                    ].map((item) => (
+                        { name: 'Inicio', path: '/', icon: 'dashboard', roles: ['administrador', 'recepcion', 'seguridad'] },
+                        { name: 'Visitas', path: '/listado', icon: 'groups', roles: ['administrador', 'recepcion', 'seguridad'] },
+                        { name: 'Acceso', path: '/seguridad', icon: 'security', roles: ['administrador', 'seguridad', 'punto_de_control'] },
+                        { name: 'Tracking', path: '/tracking', icon: 'route', roles: ['administrador', 'seguridad', 'superadmin'] },
+                    ].filter(item => role === 'superadmin' || item.roles.includes(role)).map((item) => (
                         <Link
                             key={item.path}
                             to={item.path}
@@ -209,7 +209,7 @@ const Layout = ({ children, title }) => {
 
             <button
                 onClick={() => setIsSupportModalOpen(true)}
-                className="fixed bottom-24 sm:bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all z-[99] border-4 border-white dark:border-slate-900 group"
+                className="fixed bottom-[90px] sm:bottom-6 right-6 w-14 h-14 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all z-[110] border-4 border-white dark:border-slate-900 group"
             >
                 <div className="absolute inset-0 rounded-full animate-ping bg-primary opacity-20 pointer-events-none" />
                 <Send size={28} className="relative z-10 translate-x-[-1px]" />
