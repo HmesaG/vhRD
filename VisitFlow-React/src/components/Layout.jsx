@@ -144,6 +144,18 @@ const Layout = ({ children, title }) => {
 
     const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
+    const handleSupportSubmit = () => {
+        const text = `*SOPORTE TÉCNICO VISITFLOW*\n\n` +
+            `🏢 *Empresa:* ${companyData?.name || 'No especificada'}\n` +
+            `👤 *Usuario:* ${user?.email}\n` +
+            `📅 *Fecha:* ${new Date().toLocaleString()}\n` +
+            `📝 *Caso:* ${supportMessage || 'Sin descripción'}`;
+
+        window.open(`https://wa.me/18299369811?text=${encodeURIComponent(text)}`, '_blank');
+        setIsSupportModalOpen(false);
+        setSupportMessage('');
+    };
+
     return (
         <div className="flex h-screen bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 overflow-hidden relative">
             {/* Overlay for mobile */}
@@ -216,69 +228,74 @@ const Layout = ({ children, title }) => {
             </button>
 
             {isSupportModalOpen && (
-                <div className="fixed inset-0 z-[1000] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-                    <div className="bg-white dark:bg-slate-900 w-full max-w-sm rounded-[2.5rem] border border-slate-100 dark:border-slate-800 shadow-2xl p-8 relative overflow-hidden">
-                        {/* Decorative background element */}
-                        <div className="absolute -top-24 -right-24 w-48 h-48 bg-primary/5 rounded-full blur-3xl invisible dark:visible" />
+                <div className="fixed inset-0 z-[300] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-slate-900 w-full max-w-sm rounded-t-[2.5rem] sm:rounded-[2rem] border-t sm:border border-slate-800 shadow-2xl relative overflow-hidden group pb-safe">
+                        {/* Header Decorative */}
+                        <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-primary/50 via-primary to-primary/50 opacity-50 sm:hidden" />
 
-                        <button onClick={() => setIsSupportModalOpen(false)} className="absolute top-6 right-6 p-2 text-slate-400 hover:text-red-500 transition-colors z-20">
-                            <X size={20} />
+                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity rotate-12">
+                            <Send size={120} className="text-primary" />
+                        </div>
+
+                        <button
+                            onClick={() => setIsSupportModalOpen(false)}
+                            className="absolute top-6 right-6 p-2 text-slate-500 hover:text-white transition-colors z-20 bg-slate-800/50 rounded-full"
+                        >
+                            <X size={18} />
                         </button>
 
-                        <div className="relative z-10 space-y-6">
-                            <div className="space-y-2 text-center">
-                                <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mx-auto mb-4">
-                                    <Send size={32} />
+                        <div className="relative z-10 p-8 sm:p-10 space-y-6">
+                            <div className="space-y-3">
+                                <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary mb-2 shadow-inner border border-primary/20">
+                                    <Send size={24} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
                                 </div>
-                                <h3 className="text-xl font-black text-slate-800 dark:text-white uppercase tracking-tight">Soporte Técnico</h3>
-                                <p className="text-slate-500 dark:text-slate-400 text-xs font-bold px-4 uppercase tracking-widest leading-relaxed">
-                                    Estamos aquí para ayudarte a optimizar tu flujo de trabajo.
-                                </p>
+                                <h3 className="text-2xl font-black text-white italic tracking-tighter uppercase leading-none">Soporte <span className="text-primary">Técnico</span></h3>
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[9px] font-black bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase tracking-widest">Mobile Assistant</span>
+                                    <div className="h-px flex-1 bg-slate-800" />
+                                </div>
                             </div>
 
-                            <div className="bg-slate-50 dark:bg-slate-800/40 p-5 rounded-3xl space-y-4 border border-slate-100 dark:border-slate-800/50">
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-sm">
+                            <div className="space-y-3 bg-slate-950/50 p-5 rounded-2xl border border-white/[0.03]">
+                                <div className="flex items-center gap-4">
+                                    <div className="w-9 h-9 bg-slate-900 rounded-xl flex items-center justify-center text-slate-500 border border-white/5 shadow-sm">
                                         <Building2 size={16} />
                                     </div>
-                                    <div className="overflow-hidden">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Organización</p>
-                                        <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">{companyData?.name || 'Sistema Global'}</p>
+                                    <div className="min-w-0">
+                                        <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] mb-0.5">Organización</p>
+                                        <p className="text-xs font-bold text-slate-200 truncate">{companyData?.name || '---'}</p>
                                     </div>
                                 </div>
-                                <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 rounded-lg bg-white dark:bg-slate-800 flex items-center justify-center text-primary shadow-sm">
-                                        <Users size={16} />
+                                <div className="flex items-center gap-4">
+                                    <div className="w-9 h-9 bg-slate-900 rounded-xl flex items-center justify-center text-slate-500 border border-white/5 shadow-sm">
+                                        <User size={16} />
                                     </div>
-                                    <div className="overflow-hidden">
-                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Usuario Activo</p>
-                                        <p className="text-[11px] font-bold text-slate-700 dark:text-slate-200 truncate">{user?.email}</p>
+                                    <div className="min-w-0">
+                                        <p className="text-[9px] font-black text-slate-600 uppercase tracking-[0.2em] mb-0.5">Usuario Activo</p>
+                                        <p className="text-xs font-bold text-slate-200 truncate">{user?.email}</p>
                                     </div>
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-4">Detalle del Requerimiento</label>
-                                <textarea
-                                    className="w-full bg-slate-50 dark:bg-slate-800/50 border border-slate-100 dark:border-slate-800 rounded-3xl py-4 px-5 text-sm text-slate-700 dark:text-white outline-none focus:ring-2 focus:ring-primary min-h-[100px] resize-none transition-all placeholder:text-slate-400"
-                                    placeholder="Explícanos brevemente tu consulta..."
-                                    value={supportMessage}
-                                    onChange={(e) => setSupportMessage(e.target.value)}
-                                />
-                            </div>
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <p className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] ml-1">Detalle del Requerimiento</p>
+                                    <textarea
+                                        className="w-full bg-slate-950 border-none ring-1 ring-slate-800 focus:ring-2 focus:ring-primary rounded-2xl p-5 text-sm text-white transition-all outline-none min-h-[120px] resize-none placeholder:text-slate-700"
+                                        placeholder="Explícanos brevemente tu consulta..."
+                                        value={supportMessage}
+                                        onChange={(e) => setSupportMessage(e.target.value)}
+                                    />
+                                </div>
 
-                            <button
-                                onClick={() => {
-                                    const text = `*SOPORTE TÉCNICO VISITFLOW*\n\n🏢 *Empresa:* ${companyData?.name || 'No especificada'}\n👤 *Usuario:* ${user?.email}\n📅 *Fecha:* ${new Date().toLocaleString()}\n📝 *Caso:* ${supportMessage || 'Sin descripción'}`;
-                                    window.open(`https://wa.me/18299369811?text=${encodeURIComponent(text)}`, '_blank');
-                                    setIsSupportModalOpen(false);
-                                    setSupportMessage('');
-                                }}
-                                className="w-full bg-primary hover:brightness-110 text-white font-black py-4 rounded-3xl shadow-xl shadow-primary/20 transition-all flex items-center justify-center gap-3 active:scale-95 text-xs uppercase tracking-widest group"
-                            >
-                                Iniciar Conversación
-                                <Send size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
-                            </button>
+                                <button
+                                    onClick={handleSupportSubmit}
+                                    className="w-full bg-primary hover:brightness-110 text-white font-black py-5 rounded-2xl shadow-2xl shadow-primary/20 transition-all flex items-center justify-center gap-3 active:scale-[0.98] group"
+                                >
+                                    <span className="uppercase tracking-widest text-xs">Iniciar Conversación</span>
+                                    <Send size={18} className="group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+                                </button>
+                            </div>
                         </div>
                     </div>
                 </div>

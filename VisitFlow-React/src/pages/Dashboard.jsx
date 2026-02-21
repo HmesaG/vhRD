@@ -243,11 +243,17 @@ const Dashboard = () => {
             <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full pb-10">
                 {/* Mobile Quick Actions Hub - Only on small screens */}
                 <div className="lg:hidden animate-in fade-in slide-in-from-top-4 duration-700">
-                    <div className="flex items-center justify-between mb-4 px-1">
-                        <h3 className="font-black uppercase text-[10px] tracking-widest text-slate-400">Acciones Rápidas</h3>
-                        <span className="text-[9px] font-bold bg-primary/10 text-primary px-2 py-0.5 rounded-full uppercase">PWA Mode</span>
+                    <div className="flex items-center justify-between mb-5 px-1">
+                        <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-4 bg-primary rounded-full" />
+                            <h3 className="font-black uppercase text-[11px] tracking-[0.15em] text-slate-400">Panel de Acciones</h3>
+                        </div>
+                        <span className="text-[9px] font-black bg-slate-800 text-slate-400 px-2.5 py-1 rounded-full border border-slate-700/50 uppercase tracking-tighter shadow-sm flex items-center gap-1.5">
+                            <div className="w-1 h-1 rounded-full bg-emerald-500 animate-pulse" />
+                            Mobile Experience
+                        </span>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-3 pb-8">
                         {quickActions.map((action, i) => (
                             <button
                                 key={i}

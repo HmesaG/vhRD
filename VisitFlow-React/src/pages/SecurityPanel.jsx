@@ -366,61 +366,77 @@ const SecurityPanel = () => {
                                     </button>
                                 </div>
 
-                                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-xl">
-                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-4 sm:p-6 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+                                <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-2xl relative">
+                                    <div className="bg-slate-50 dark:bg-slate-800/50 p-5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
                                         <div className="flex items-center gap-3">
-                                            <User className="text-primary" size={20} />
-                                            <h4 className="font-black text-slate-800 dark:text-white uppercase tracking-wider text-sm">Ficha del Visitante</h4>
+                                            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
+                                                <User size={16} />
+                                            </div>
+                                            <h4 className="font-black text-slate-800 dark:text-white uppercase tracking-wider text-xs">Ficha del Visitante</h4>
                                         </div>
-                                        <span className="bg-primary/10 text-primary text-[10px] font-black px-3 py-1 rounded-full uppercase">Expediente Activo</span>
+                                        <span className="bg-emerald-500/10 text-emerald-500 text-[9px] font-black px-3 py-1 rounded-full uppercase border border-emerald-500/20">Expediente Vivo</span>
                                     </div>
 
-                                    <div className="p-4 sm:p-6 lg:p-8 grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-                                        <div className="md:col-span-1">
-                                            <div className="aspect-[4/3] md:aspect-[3/4] rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-inner">
-                                                {scannedVisit.photo_url ? (
-                                                    <img src={scannedVisit.photo_url} alt="Visitante" className="w-full h-full object-cover" />
-                                                ) : (
-                                                    <div className="w-full h-full flex items-center justify-center text-slate-300">
-                                                        <User size={64} />
+                                    <div className="p-5 sm:p-8 space-y-8">
+                                        <div className="flex flex-col sm:flex-row gap-6">
+                                            <div className="w-full sm:w-1/3">
+                                                <div className="aspect-[4/3] sm:aspect-[3/4] rounded-2xl bg-slate-100 dark:bg-slate-800 overflow-hidden border-2 border-slate-200 dark:border-slate-700 shadow-inner group">
+                                                    {scannedVisit.photo_url ? (
+                                                        <img src={scannedVisit.photo_url} alt="Visitante" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+                                                    ) : (
+                                                        <div className="w-full h-full flex flex-col items-center justify-center text-slate-300 gap-2">
+                                                            <User size={48} />
+                                                            <span className="text-[10px] uppercase font-bold opacity-50">Sin Foto</span>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            </div>
+
+                                            <div className="flex-1 space-y-6">
+                                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                                                    <DataField label="Nombre Completo" value={scannedVisit.full_name} />
+                                                    <DataField label="Documento ID" value={scannedVisit.document_id} />
+                                                    <DataField label="Empresa" value={scannedVisit.company} icon={<Building size={14} />} />
+                                                    <DataField label="Asunto / Motivo" value={scannedVisit.reason} />
+                                                </div>
+
+                                                <div className="h-px bg-slate-100 dark:bg-slate-800" />
+
+                                                <div className="space-y-4">
+                                                    <div className="space-y-2">
+                                                        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">Punto de Destino</p>
+                                                        <div className="flex items-center gap-4 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-2xl border border-slate-200 dark:border-slate-700/50">
+                                                            <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary shadow-sm">
+                                                                <MapPin size={20} />
+                                                            </div>
+                                                            <div className="min-w-0">
+                                                                <p className="font-bold text-slate-800 dark:text-white truncate uppercase tracking-tight">
+                                                                    {areas[scannedVisit.areaId]?.name || 'Área no especificada'}
+                                                                </p>
+                                                                <p className="text-[10px] text-slate-500 font-bold uppercase">
+                                                                    Nivel: {areas[scannedVisit.areaId]?.level || '---'}
+                                                                </p>
+                                                            </div>
+                                                        </div>
                                                     </div>
-                                                )}
+                                                    <div className="grid grid-cols-2 gap-4">
+                                                        <DataField label="Hora de Ingreso" value={scannedVisit.check_in?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} />
+                                                        <DataField label="Carnet ID" value={`# ${scannedVisit.badge_number}`} />
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
 
-                                        <div className="md:col-span-2 space-y-6">
-                                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 lg:gap-6">
-                                                <DataField label="Nombre Completo" value={scannedVisit.full_name} />
-                                                <DataField label="Cédula / ID" value={scannedVisit.document_id} />
-                                                <DataField label="Empresa de Origen" value={scannedVisit.company} icon={<Building size={14} />} />
-                                                <DataField label="Motivo de Visita" value={scannedVisit.reason} />
-                                            </div>
-
-                                            <div className="h-px bg-slate-100 dark:bg-slate-800" />
-
-                                            <div className="grid grid-cols-1 gap-6">
-                                                <div className="space-y-1">
-                                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Destino Autorizado</p>
-                                                    <div className="flex items-center gap-3 bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700/50">
-                                                        <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center text-primary">
-                                                            <MapPin size={20} />
-                                                        </div>
-                                                        <div>
-                                                            <p className="font-bold text-slate-800 dark:text-white">
-                                                                {areas[scannedVisit.areaId]?.name || 'Área no especificada'}
-                                                            </p>
-                                                            <p className="text-xs text-slate-500 uppercase tracking-tighter">
-                                                                Nivel: {areas[scannedVisit.areaId]?.level || '---'}
-                                                            </p>
-                                                        </div>
-                                                    </div>
+                                        <div className="pt-2">
+                                            <button
+                                                onClick={handleReset}
+                                                className="w-full bg-slate-900 border border-slate-800 text-white py-5 rounded-2xl font-black uppercase text-xs tracking-[0.2em] shadow-xl transition-all active:scale-[0.98] hover:bg-slate-800 flex items-center justify-center gap-3 group"
+                                            >
+                                                Finalizar Proceso
+                                                <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                                                    <CheckCircle2 size={12} />
                                                 </div>
-                                                <DataField label="Persona que Recibe" value={scannedVisit.employee} />
-                                                <div className="grid grid-cols-2 gap-4">
-                                                    <DataField label="Hora Entrada" value={scannedVisit.check_in?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} />
-                                                    <DataField label="Carnet Asignado" value={`#${scannedVisit.badge_number}`} />
-                                                </div>
-                                            </div>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
