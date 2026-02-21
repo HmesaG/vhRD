@@ -17,6 +17,7 @@ const Badges = () => {
     const [isQRModalOpen, setIsQRModalOpen] = useState(false);
     const [qrValue, setQrValue] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
+    const [activeVisitsMap, setActiveVisitsMap] = useState({});
 
     useEffect(() => {
         if (!companyId) return;
@@ -52,7 +53,27 @@ const Badges = () => {
             }
             setLoading(false);
         });
-        return () => unsubscribe();
+
+        // Track active visits to determine badge occupancy
+        const qVisits = query(
+            collection(db, 'visits'),
+            where('companyId', '==', companyId)
+        );
+        const unsubscribeVisits = onSnapshot(qVisits, (snapshot) => {
+            const map = {};
+            snapshot.docs.forEach(d => {
+                const data = d.data();
+                if (!data.check_out && data.badge_number) {
+                    map[data.badge_number] = data.full_name;
+                }
+            });
+            setActiveVisitsMap(map);
+        });
+
+        return () => {
+            unsubscribe();
+            unsubscribeVisits();
+        };
     }, [formData.prefix, companyId]);
 
     const handleAdd = async (e) => {
@@ -134,10 +155,15 @@ const Badges = () => {
         }
     };
 
-    const filteredBadges = badges.filter(b =>
-        b.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        b.status?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const filteredBadges = badges.filter(b => {
+        const isOccupied = !!activeVisitsMap[b.number];
+        const statusText = isOccupied ? 'ocupado' : 'en recepción';
+        const visitorName = activeVisitsMap[b.number] || '';
+
+        return b.number.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            statusText.includes(searchTerm.toLowerCase()) ||
+            visitorName.toLowerCase().includes(searchTerm.toLowerCase());
+    });
 
     const columns = [
         {
@@ -160,12 +186,25 @@ const Badges = () => {
         },
         {
             header: 'Estado de Inventario',
-            render: () => (
-                <div className="flex items-center gap-2">
-                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                    <span className="text-xs font-medium text-slate-600 dark:text-slate-400">En Recepción</span>
-                </div>
-            )
+            render: (row) => {
+                const visitorName = activeVisitsMap[row.number];
+                const isOccupied = !!visitorName;
+                return (
+                    <div className="flex items-center gap-3">
+                        <div className={`w-2 h-2 rounded-full ${isOccupied ? 'bg-red-500 animate-pulse' : 'bg-emerald-500'}`}></div>
+                        <div>
+                            <p className={`text-xs font-black uppercase tracking-tight ${isOccupied ? 'text-red-500' : 'text-emerald-500'}`}>
+                                {isOccupied ? 'Ocupado' : 'En Recepción'}
+                            </p>
+                            {isOccupied && (
+                                <p className="text-[9px] text-slate-400 font-bold uppercase tracking-widest truncate max-w-[120px]">
+                                    {visitorName}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                );
+            }
         },
         {
             header: 'Acciones',
