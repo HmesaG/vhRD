@@ -2,6 +2,18 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer utilities {
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe-offset-20 {
+    padding-bottom: calc(5rem + env(safe-area-inset-bottom));
+  }
+}
+
 @layer base {
   body {
     @apply font-display text-slate-900 dark:text-slate-100 bg-background-light dark:bg-background-dark;

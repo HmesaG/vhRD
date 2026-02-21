@@ -100,9 +100,9 @@ const SidebarContent = ({ companyData, role, location, handleLogout, user }) => 
                     );
                 })}
             </nav>
-            <div className="p-4 border-t border-slate-800 shrink-0">
+            <div className="p-4 border-t border-slate-800 shrink-0 pb-safe-offset-20 lg:pb-4">
                 <div className="flex items-center justify-between group">
-                    <div className="flex items-center gap-3 overflow-hidden">
+                    <div className="flex items-center gap-3 overflow-hidden text-left">
                         <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-bold text-xs shrink-0">
                             {user?.email?.charAt(0).toUpperCase()}
                         </div>
@@ -152,7 +152,7 @@ const Layout = ({ children, title }) => {
             )}
 
             {/* Sidebars */}
-            <aside className={`fixed inset-y-0 left-0 w-64 bg-slate-900 dark:bg-black text-slate-300 z-50 transform transition-transform duration-300 lg:hidden flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+            <aside className={`fixed inset-y-0 left-0 w-72 bg-slate-900 dark:bg-black text-slate-300 z-[200] transform transition-transform duration-300 lg:hidden flex flex-col shadow-2xl ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
                 <SidebarContent companyData={companyData} role={role} location={location} handleLogout={handleLogout} user={user} />
             </aside>
             <aside className="w-64 bg-slate-900 dark:bg-black text-slate-300 flex-shrink-0 hidden lg:flex flex-col border-r border-slate-800">
