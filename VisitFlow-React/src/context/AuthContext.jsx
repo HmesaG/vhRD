@@ -3,6 +3,7 @@ import {
     auth, db, doc, getDoc, onAuthStateChanged,
     setDoc, collection, query, limit, getDocs, addDoc, serverTimestamp
 } from '../firebase';
+import SplashScreen from '../components/SplashScreen';
 
 const AuthContext = createContext();
 
@@ -54,40 +55,30 @@ export const AuthProvider = ({ children }) => {
                             } else {
                                 console.log('No user document found. Attempting to auto-register user...');
                                 try {
-                                    // 1. Find existing organization or create one
                                     const orgQuery = query(collection(db, 'organizations'), limit(1));
                                     const orgSnapshot = await getDocs(orgQuery);
 
                                     let firstOrgId = null;
                                     if (!orgSnapshot.empty) {
                                         firstOrgId = orgSnapshot.docs[0].id;
-                                        console.log('Found organization to bind user to:', firstOrgId);
                                     } else {
-                                        // Create default org if not exists (fallback)
-                                        console.log('No organization found. Creating default...');
                                         const newOrgRef = await addDoc(collection(db, 'organizations'), {
                                             name: 'Mi Empresa',
                                             createdAt: serverTimestamp()
                                         });
                                         firstOrgId = newOrgRef.id;
-                                        console.log('Created new default organization:', firstOrgId);
                                     }
 
-                                    // 2. Create user document with admin role
                                     await setDoc(userDocRef, {
                                         email: currentUser.email,
-                                        role: 'administrador', // Give admin access by default for DX
+                                        role: 'administrador',
                                         companyId: firstOrgId,
                                         createdAt: serverTimestamp()
                                     });
 
-                                    console.log('✅ User auto-registered successfully');
-
-                                    // 3. Update local state immediately
                                     setRole('administrador');
                                     setCompanyId(firstOrgId);
 
-                                    // 4. Fetch company data
                                     if (firstOrgId) {
                                         const compDoc = await getDoc(doc(db, 'organizations', firstOrgId));
                                         if (compDoc.exists()) setCompanyData(compDoc.data());
@@ -95,7 +86,7 @@ export const AuthProvider = ({ children }) => {
 
                                 } catch (regError) {
                                     console.error('Auto-registration failed:', regError);
-                                    setRole('recepcion'); // Fallback
+                                    setRole('recepcion');
                                 }
                             }
                         } catch (userError) {
@@ -104,7 +95,6 @@ export const AuthProvider = ({ children }) => {
                         }
                         setUser(currentUser);
                     } else {
-                        console.log('No user authenticated');
                         setUser(null);
                         setUserData(null);
                         setRole(null);
@@ -132,10 +122,9 @@ export const AuthProvider = ({ children }) => {
         };
     }, []);
 
-    // Always render children, even if loading (to prevent blank screen)
     return (
         <AuthContext.Provider value={{ user, userData, role, companyId, companyData, loading, error }}>
-            {children}
+            {loading ? <SplashScreen /> : children}
         </AuthContext.Provider>
     );
 };

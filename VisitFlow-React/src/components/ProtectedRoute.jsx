@@ -1,21 +1,14 @@
 import React from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import SplashScreen from './SplashScreen';
 
 const ProtectedRoute = ({ children, allowedRoles }) => {
     const { user, role, loading } = useAuth();
     const location = useLocation();
 
-    // Show loading indicator while checking auth
     if (loading) {
-        return (
-            <div className="h-screen w-screen flex items-center justify-center bg-slate-50 dark:bg-slate-900">
-                <div className="text-center">
-                    <div className="w-16 h-16 border-4 border-primary border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-                    <p className="text-slate-600 dark:text-slate-400 font-medium">Cargando...</p>
-                </div>
-            </div>
-        );
+        return <SplashScreen />;
     }
 
     if (!user) {
@@ -28,7 +21,15 @@ const ProtectedRoute = ({ children, allowedRoles }) => {
     }
 
     if (allowedRoles && !allowedRoles.includes(role)) {
-        return <Navigate to="/" replace />;
+        // Redirigir a su página principal permitida si no tiene acceso a la actual
+        const roleHome = {
+            'punto_de_control': '/seguridad',
+            'recepcion': '/',
+            'administrador': '/',
+            'seguridad': '/',
+            'superadmin': '/'
+        };
+        return <Navigate to={roleHome[role] || '/'} replace />;
     }
 
     return children;

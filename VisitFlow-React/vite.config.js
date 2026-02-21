@@ -10,11 +10,11 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'logo.png', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'VisitFlow',
+        name: 'VisitFlow | Sistema de Gestión de Visitas',
         short_name: 'VisitFlow',
-        description: 'Sistema de Gestión de Visitas - GMV',
+        description: 'Vanguardia en Seguridad y Gestión de Accesos - Grupo Mesa Vasquez',
         theme_color: '#f58220',
-        background_color: '#ffffff',
+        background_color: '#0f172a',
         display: 'standalone',
         orientation: 'portrait',
         icons: [

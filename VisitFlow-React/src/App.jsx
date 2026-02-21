@@ -101,7 +101,7 @@ function App() {
           } />
 
           <Route path="/acerca" element={
-            <ProtectedRoute allowedRoles={['administrador', 'recepcion', 'seguridad', 'superadmin']}>
+            <ProtectedRoute allowedRoles={['administrador', 'recepcion', 'seguridad', 'superadmin', 'punto_de_control']}>
               <About />
             </ProtectedRoute>
           } />

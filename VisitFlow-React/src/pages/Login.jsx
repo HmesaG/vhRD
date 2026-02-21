@@ -186,8 +186,8 @@ const Login = () => {
             </div>
 
             {/* Footer */}
-            <div className="w-full max-w-6xl relative z-10 pt-16 pb-12 mt-12 border-t border-slate-900/50">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-16 md:gap-12 text-left px-6 sm:px-8">
+            <div className="w-full max-w-6xl mx-auto relative z-10 pt-16 pb-12 mt-12 border-t border-slate-900/50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 text-left px-6 sm:px-8">
                     <div className="space-y-6">
                         <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.25em]">Propiedad Intelectual</h3>
                         <div className="space-y-4">
@@ -204,7 +204,7 @@ const Login = () => {
                     </div>
 
                     <div className="space-y-6">
-                        <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.25em]">Canales Oficiales</h3>
+                        <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.25em]">Redes Oficiales</h3>
                         <div className="space-y-4">
                             <a href="tel:8097649811" className="flex items-center gap-4 text-slate-400 hover:text-white transition-all duration-300 group">
                                 <div className="flex items-center justify-center w-10 h-10 bg-slate-900 rounded-xl group-hover:bg-primary/20 border border-white/[0.02] group-hover:border-primary/30 transition-all">
@@ -234,7 +234,7 @@ const Login = () => {
                     </div>
                 </div>
 
-                <div className="mt-20 pt-10 border-t border-slate-900 flex flex-col md:flex-row items-center justify-between gap-8 px-6 sm:px-8">
+                <div className="mt-20 pt-10 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-8 px-6 sm:px-8">
                     <div className="flex items-center gap-8 sm:gap-10">
                         <a href="#" className="text-slate-600 hover:text-primary transition-all hover:scale-125 duration-300">
                             <Instagram size={20} />
@@ -248,7 +248,7 @@ const Login = () => {
                     </div>
                     <div className="flex items-center gap-4">
                         <div className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse" />
-                        <span className="text-[10px] font-black text-slate-700 uppercase tracking-[0.3em] text-center">Visits Management System v2.0</span>
+                        <span className="text-[9px] sm:text-[10px] font-black text-slate-700 uppercase tracking-widest sm:tracking-[0.3em] text-center">Visits Management System v2.0</span>
                     </div>
                 </div>
             </div>

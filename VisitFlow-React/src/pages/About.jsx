@@ -34,7 +34,7 @@ const About = () => {
                         />
                     </div>
                     <h1 className="text-4xl font-black text-slate-800 dark:text-white tracking-tighter uppercase">
-                        VisitFlow <span className="text-primary">v2.1.0</span>
+                        VisitFlow <span className="text-primary text-2xl sm:text-4xl">v2.1.0</span>
                     </h1>
                     <p className="text-slate-500 dark:text-slate-400 max-w-xl mx-auto text-lg leading-relaxed">
                         Solución integral de vanguardia para la gestión, control y seguridad de accesos en entornos corporativos modernos.
@@ -87,7 +87,7 @@ const About = () => {
 
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                                 <div className="space-y-3">
-                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Canales Oficiales</p>
+                                    <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Redes Oficiales</p>
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2 text-[11px] font-bold text-slate-300">
                                             <Phone size={12} className="text-primary" /> 809.764.9811
