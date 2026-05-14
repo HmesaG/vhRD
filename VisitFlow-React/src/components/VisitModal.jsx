@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { db, collection, addDoc, onSnapshot, query, where, serverTimestamp } from '../firebase';
-import { X, AlertTriangle } from 'lucide-react';
+import { X, AlertTriangle, Camera, Scan, RotateCcw } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { Html5Qrcode } from 'html5-qrcode';
 
 const VisitModal = ({ isOpen, onClose }) => {
     const { companyId } = useAuth();
@@ -20,6 +21,9 @@ const VisitModal = ({ isOpen, onClose }) => {
     const [badges, setBadges] = useState([]);
     const [areas, setAreas] = useState([]);
     const [activeBadgeNumbers, setActiveBadgeNumbers] = useState([]);
+    const [isFetching, setIsFetching] = useState(false);
+    const [isCameraActive, setIsCameraActive] = useState(false);
+    const html5QrCodeRef = React.useRef(null);
 
     useEffect(() => {
         if (!isOpen) return;
@@ -71,13 +75,75 @@ const VisitModal = ({ isOpen, onClose }) => {
                 setAreas(data);
             })
         ];
-
         return () => unsubs.forEach(fn => fn());
     }, [isOpen, companyId]);
+
+    useEffect(() => {
+        const cleanId = formData.document_id.replace(/\D/g, '');
+        if (cleanId.length === 11) {
+            const fetchName = async () => {
+                setIsFetching(true);
+                try {
+                    const response = await fetch(`https://cedula.jeshuatech.com/?cedula=${cleanId}`);
+                    const result = await response.json();
+                    if (result.success && result.data?.nombre_completo) {
+                        setFormData(prev => ({
+                            ...prev,
+                            full_name: result.data.nombre_completo
+                        }));
+                    }
+                } catch (error) {
+                    console.error("Error fetching cedula:", error);
+                } finally {
+                    setIsFetching(false);
+                }
+            };
+            fetchName();
+        }
+    }, [formData.document_id]);
 
     const activeReason = reasons.find(r => r.label === formData.reason);
     const isBadgeRequired = formData.reason && activeReason ? activeReason.requiresBadge : false;
     const availableBadges = badges.filter(num => !activeBadgeNumbers.includes(num));
+
+    const startScanner = async () => {
+        try {
+            setIsCameraActive(true);
+            setTimeout(async () => {
+                try {
+                    const html5QrCode = new Html5Qrcode("modal-reader");
+                    html5QrCodeRef.current = html5QrCode;
+                    await html5QrCode.start(
+                        { facingMode: "environment" },
+                        { fps: 10, qrbox: { width: 250, height: 250 } },
+                        (decodedText) => {
+                            setFormData(prev => ({ ...prev, document_id: decodedText }));
+                            stopScanner();
+                        },
+                        () => {}
+                    );
+                } catch (err) {
+                    console.error(err);
+                    setIsCameraActive(false);
+                }
+            }, 100);
+        } catch (err) { setIsCameraActive(false); }
+    };
+
+    const stopScanner = async () => {
+        if (html5QrCodeRef.current && html5QrCodeRef.current.isScanning) {
+            await html5QrCodeRef.current.stop();
+            await html5QrCodeRef.current.clear();
+        }
+        html5QrCodeRef.current = null;
+        setIsCameraActive(false);
+    };
+
+    useEffect(() => {
+        return () => {
+            if (html5QrCodeRef.current) stopScanner();
+        };
+    }, []);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -137,7 +203,10 @@ const VisitModal = ({ isOpen, onClose }) => {
                     <form onSubmit={handleSubmit} className="space-y-6 lg:space-y-4">
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                             <div className="md:col-span-2 space-y-1.5">
-                                <label className="block text-xs font-bold text-slate-400 uppercase ml-1">Nombre Completo</label>
+                                <div className="flex justify-between items-center ml-1">
+                                    <label className="block text-xs font-bold text-slate-400 uppercase">Nombre Completo</label>
+                                    {isFetching && <span className="text-[10px] text-primary animate-pulse font-bold uppercase">Consultando API...</span>}
+                                </div>
                                 <input
                                     required
                                     type="text"
@@ -148,17 +217,47 @@ const VisitModal = ({ isOpen, onClose }) => {
                                 />
                             </div>
                             <div className="space-y-1.5">
-                                <label className="block text-xs font-bold text-slate-400 uppercase ml-1">Cédula / ID</label>
-                                <input
-                                    required
-                                    type="text"
-                                    className="w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none transition-shadow font-mono"
-                                    placeholder="Ej: 1-1234-5678"
-                                    value={formData.document_id}
-                                    onChange={(e) => setFormData({ ...formData, document_id: e.target.value })}
-                                />
+                                <div className="flex justify-between items-center ml-1">
+                                    <label className="block text-xs font-bold text-slate-400 uppercase">Cédula / ID</label>
+                                    <button
+                                        type="button"
+                                        onClick={isCameraActive ? stopScanner : startScanner}
+                                        className={`flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-black uppercase transition-all ${isCameraActive ? 'bg-red-500 text-white shadow-lg shadow-red-500/20' : 'bg-primary/10 text-primary hover:bg-primary hover:text-white'}`}
+                                    >
+                                        {isCameraActive ? <X size={12} /> : <Camera size={12} />}
+                                        {isCameraActive ? 'Cerrar' : 'Escanear'}
+                                    </button>
+                                </div>
+                                <div className="relative group">
+                                    <input
+                                        required
+                                        type="text"
+                                        className={`w-full px-4 py-3 bg-slate-50 dark:bg-slate-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary outline-none transition-all font-mono ${isFetching ? 'opacity-50' : ''}`}
+                                        placeholder="Ej: 001-0000000-0"
+                                        value={formData.document_id}
+                                        onChange={(e) => setFormData({ ...formData, document_id: e.target.value })}
+                                    />
+                                    <div className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-300">
+                                        <Scan size={16} />
+                                    </div>
+                                </div>
                             </div>
                         </div>
+
+                        {isCameraActive && (
+                            <div className="relative w-full aspect-video bg-black rounded-2xl overflow-hidden border-2 border-primary/30 shadow-xl animate-in zoom-in-95 duration-200">
+                                <div id="modal-reader" className="w-full h-full" />
+                                <div className="absolute inset-0 pointer-events-none border-[30px] border-slate-900/40">
+                                    <div className="w-full h-full border border-primary/50 relative">
+                                        <div className="absolute top-0 left-0 w-4 h-4 border-t-2 border-l-2 border-primary" />
+                                        <div className="absolute top-0 right-0 w-4 h-4 border-t-2 border-r-2 border-primary" />
+                                        <div className="absolute bottom-0 left-0 w-4 h-4 border-b-2 border-l-2 border-primary" />
+                                        <div className="absolute bottom-0 right-0 w-4 h-4 border-b-2 border-r-2 border-primary" />
+                                        <div className="w-full h-0.5 bg-primary/30 absolute top-0 animate-scan-line" />
+                                    </div>
+                                </div>
+                            </div>
+                        )}
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             <div>
