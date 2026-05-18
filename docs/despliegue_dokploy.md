@@ -89,7 +89,7 @@ Si deseas seguir usando tu base de datos de producción existente, no necesitas 
 
 ### Paso 3: Desplegar el Frontend (React) 💻
 
-El frontend de React se sirve estáticamente con Nginx en el puerto 80, pero requiere comunicarse con la API a través del navegador. Para esto, Vite necesita saber la dirección pública de la API **durante la compilación**.
+El frontend de React se sirve estáticamente con Nginx en el puerto 80, pero requiere comunicarse con la API. ¡Buenas noticias! Ahora el sistema incluye un **RESOLVER DINÁMICO AUTO-CURABLE** en el cliente de red (`api.js`), lo que significa que **se configura solo de forma inteligente**.
 
 1. En tu panel de Dokploy, ve a **Applications** -> **Create Application**.
 2. Configura el origen del código:
@@ -101,16 +101,19 @@ El frontend de React se sirve estáticamente con Nginx en el puerto 80, pero req
    * **Dockerfile Path**: `Dockerfile` *(El Dockerfile de la raíz)*
 4. En la sección **Network**:
    * **Port**: `80` *(El puerto en el que escucha Nginx)*
-5. En la sección **Environment Variables**, agrega la URL pública del backend de producción:
-   ```env
-   VITE_API_URL=https://api-vhrd.31.97.100.82.sslip.io
-   ```
-   > [!IMPORTANT]
-   > Reemplaza `https://api-vhrd.31.97.100.82.sslip.io` por la URL pública exacta y HTTPS que le hayas asignado al backend en el **Paso 2**.
+5. **Configuración de la URL de la API (Dos opciones):**
+   * **Opción Auto-Curable (Recomendada y Automática):** No necesitas configurar ninguna variable de entorno ni argumento de compilación en Dokploy. El frontend detectará automáticamente si está corriendo en localhost (y usará `http://localhost:3001`) o en producción (e inteligentemente deducirá el backend añadiendo el prefijo `api-` al dominio del navegador, ej: `vhrd.31.97.100.82.sslip.io` -> `api-vhrd.31.97.100.82.sslip.io`).
+   * **Opción Explícita (Para dominios personalizados):** Si vas a utilizar dominios independientes personalizados sin el patrón estándar (ej: `www.misitio.com` y `backend.misitio.com`), puedes pasar la URL explícitamente agregando un **Build Arg** (¡no variable de entorno normal!) en Dokploy:
+     * En Dokploy, ve a la pestaña **Build Configuration** -> **Build Args** e introduce:
+       ```text
+       VITE_API_URL=https://tu-api-personalizada.com
+       ```
+       > [!IMPORTANT]
+       > Si usas esta opción, asegúrate de colocar el valor en **Build Args** (y no en Environment Variables) para que Vite pueda inyectarlo en el código durante el proceso de compilación (`docker build`).
 6. En la pestaña **Domains**, asigna el dominio del frontend:
    * Si usas sslip.io: `vhrd.31.97.100.82.sslip.io`
    * Si usas tu propio dominio: `vhrd.tudominio.com`
-7. Haz clic en **Deploy**. Dokploy descargará el código, compilará React insertando la variable `VITE_API_URL` en los estáticos y servirá el sitio mediante Nginx con SSL automático.
+7. Haz clic en **Deploy** (o **Redeploy**). Dokploy descargará el código actualizado de GitHub, compilará la aplicación con soporte para WebSockets estables y servirá el frontend de forma inmediata.
 
 ---
 
