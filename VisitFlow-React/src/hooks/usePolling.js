@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { io } from 'socket.io-client';
+import { SOCKET_URL } from '../services/api';
 
 // Singleton socket instance
-const socket = io('/', { path: '/socket.io', autoConnect: true });
+const socket = io(SOCKET_URL, { path: '/socket.io', autoConnect: true });
 
 /**
  * Custom hook for real-time data from the API using WebSockets.

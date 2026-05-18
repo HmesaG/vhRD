@@ -3,7 +3,64 @@
  * Centralized HTTP client that replaces all previous SDK calls.
  */
 
-const API_URL = import.meta.env.VITE_API_URL || '/api';
+/**
+ * Detects the correct backend base URLs for both REST API and WebSockets.
+ * Handles:
+ * 1. Local environment (localhost/127.0.0.1) -> http://localhost:3001
+ * 2. Production env variables (VITE_API_URL) -> If provided as full URL
+ * 3. Dynamic production fallback -> Prefixes domain with api- (e.g. vhrd.31.97.100.82.sslip.io -> api-vhrd.31.97.100.82.sslip.io)
+ */
+export const getBackendUrls = () => {
+    const envUrl = import.meta.env.VITE_API_URL;
+    
+    // 1. If VITE_API_URL is configured as a full URL (not just '/api')
+    if (envUrl && envUrl.startsWith('http')) {
+        const cleanEnvUrl = envUrl.endsWith('/') ? envUrl.slice(0, -1) : envUrl;
+        
+        // If VITE_API_URL includes the /api suffix
+        if (cleanEnvUrl.endsWith('/api')) {
+            return {
+                API_URL: cleanEnvUrl,
+                SOCKET_URL: cleanEnvUrl.slice(0, -4) // strip /api
+            };
+        }
+        return {
+            API_URL: `${cleanEnvUrl}/api`,
+            SOCKET_URL: cleanEnvUrl
+        };
+    }
+
+    // 2. If running locally on localhost
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return {
+            API_URL: 'http://localhost:3001/api',
+            SOCKET_URL: 'http://localhost:3001'
+        };
+    }
+
+    // 3. Dynamic production fallback based on window.location
+    const protocol = window.location.protocol;
+    const host = window.location.host;
+    
+    // If we're already on an api host (precautionary)
+    if (host.startsWith('api-') || host.startsWith('api.')) {
+        return {
+            API_URL: `${protocol}//${host}/api`,
+            SOCKET_URL: `${protocol}//${host}`
+        };
+    }
+
+    // Standard pattern: api-[frontend-domain]
+    return {
+        API_URL: `${protocol}//api-${host}/api`,
+        SOCKET_URL: `${protocol}//api-${host}`
+    };
+};
+
+const urls = getBackendUrls();
+export const API_URL = urls.API_URL;
+export const SOCKET_URL = urls.SOCKET_URL;
+
 
 const getHeaders = () => {
     const headers = { 'Content-Type': 'application/json' };

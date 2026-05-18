@@ -5,6 +5,11 @@ WORKDIR /app
 COPY VisitFlow-React/package*.json ./
 RUN npm install
 COPY VisitFlow-React/ .
+
+# Permite inyectar la URL de la API durante la compilación en Docker
+ARG VITE_API_URL
+ENV VITE_API_URL=$VITE_API_URL
+
 RUN npm run build
 
 # Production Stage
