@@ -64,7 +64,6 @@ const Login = () => {
         setError('');
         setSuccess('');
         try {
-            // TODO: Implement password reset endpoint in backend
             setSuccess('Funcionalidad de recuperación en desarrollo. Contacte al administrador.');
             setLoading(false);
         } catch (err) {
@@ -89,6 +88,7 @@ const Login = () => {
 
     return (
         <div className="min-h-screen bg-slate-950 flex flex-col lg:flex-row relative overflow-hidden">
+
             {/* Background Gradient for Mobile/Tablet */}
             <div className="absolute lg:hidden inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,130,32,0.15),transparent_70%)] pointer-events-none" />
 
@@ -96,7 +96,7 @@ const Login = () => {
             <div className="hidden lg:flex lg:w-[45%] xl:w-1/2 bg-slate-900 relative flex-col items-center justify-center border-r border-slate-800/60 p-12 overflow-hidden">
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(245,130,32,0.15),transparent_60%)] pointer-events-none" />
                 <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay pointer-events-none"></div>
-                
+
                 <div className="relative z-10 text-center flex flex-col items-center">
                     <div className="w-48 h-48 xl:w-56 xl:h-56 mb-12 transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 ease-out">
                         <img
@@ -113,7 +113,7 @@ const Login = () => {
                         Access Control System
                     </p>
                 </div>
-                
+
                 {/* Decorative Elements */}
                 <div className="absolute bottom-12 left-12 right-12 flex items-center justify-between text-slate-600">
                     <div className="flex items-center gap-3">
@@ -126,142 +126,141 @@ const Login = () => {
 
             {/* Right Side: Login Form & Footer Container */}
             <div className="w-full lg:w-[55%] xl:w-1/2 h-screen overflow-y-auto flex flex-col relative custom-scrollbar">
-                
+
                 {/* Login Form Container */}
                 <div className="flex-grow flex flex-col justify-center items-center p-4 sm:p-8 lg:p-12 w-full max-w-2xl mx-auto pt-10 sm:pt-16 lg:pt-0">
-                    
+
                     {/* Mobile/Tablet Branding (Hidden on Desktop) */}
                     <div className="text-center mb-8 sm:mb-10 lg:hidden group w-full">
                         <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-8 transform group-hover:scale-105 transition-all duration-700">
-                        <img
-                            src="/logo.png"
-                            alt="Visitas Hub RD Logo"
-                            className="w-full h-full object-contain filter drop-shadow-[0_0_30px_rgba(245,130,32,0.4)]"
-                        />
+                            <img
+                                src="/logo.png"
+                                alt="Visitas Hub RD Logo"
+                                className="w-full h-full object-contain filter drop-shadow-[0_0_30px_rgba(245,130,32,0.4)]"
+                            />
+                        </div>
+                        <h1 className="text-3xl sm:text-4xl font-black text-white text-center tracking-tighter mb-2 italic">Visitas Hub RD</h1>
+                        <div className="h-1 w-10 sm:w-12 bg-primary mx-auto rounded-full mb-4" />
+                        <p className="text-slate-500 text-[10px] sm:text-[11px] font-black text-center uppercase tracking-[0.3em]">Access Control System</p>
                     </div>
-                    <h1 className="text-3xl sm:text-4xl font-black text-white text-center tracking-tighter mb-2 italic">Visitas Hub RD</h1>
-                    <div className="h-1 w-10 sm:w-12 bg-primary mx-auto rounded-full mb-4" />
-                    <p className="text-slate-500 text-[10px] sm:text-[11px] font-black text-center uppercase tracking-[0.3em]">Access Control System</p>
-                </div>
 
                     <div className="bg-slate-900/60 backdrop-blur-xl p-6 sm:p-8 lg:p-10 rounded-[2rem] border border-slate-800/80 shadow-2xl w-full max-w-md relative z-10">
                         <div className="flex items-center gap-3 mb-8">
-                        {isResetMode && (
-                            <button
-                                onClick={() => {
-                                    setIsResetMode(false);
-                                    setError('');
-                                    setSuccess('');
-                                }}
-                                className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors"
-                            >
-                                <ArrowLeft size={20} />
-                            </button>
-                        )}
-                        <h2 className="text-xl font-bold text-white">
-                            {isResetMode ? 'Recuperar Contraseña' : 'Iniciar Sesión'}
-                        </h2>
-                    </div>
-
-                    {error && (
-                        <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold">
-                            {error}
+                            {isResetMode && (
+                                <button
+                                    onClick={() => {
+                                        setIsResetMode(false);
+                                        setError('');
+                                        setSuccess('');
+                                    }}
+                                    className="p-2 -ml-2 text-slate-400 hover:text-white transition-colors"
+                                >
+                                    <ArrowLeft size={20} />
+                                </button>
+                            )}
+                            <h2 className="text-xl font-bold text-white">
+                                {isResetMode ? 'Recuperar Contraseña' : 'Iniciar Sesión'}
+                            </h2>
                         </div>
-                    )}
 
-                    {success && (
-                        <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs font-bold">
-                            {success}
-                        </div>
-                    )}
-
-                    <form onSubmit={isResetMode ? handleResetPassword : handleSubmit} className="space-y-5">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Email Corporativo</label>
-                            <div className="relative group">
-                                <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" />
-                                <input
-                                    required
-                                    type="email"
-                                    placeholder="correo@empresa.com"
-                                    className="w-full bg-slate-950 border-none ring-1 ring-slate-800 focus:ring-2 focus:ring-primary rounded-xl py-3.5 pl-12 text-sm text-white transition-all outline-none"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                />
+                        {error && (
+                            <div className="mb-6 p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs font-bold">
+                                {error}
                             </div>
-                        </div>
+                        )}
 
-                        {!isResetMode && (
+                        {success && (
+                            <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-xs font-bold">
+                                {success}
+                            </div>
+                        )}
+
+                        <form onSubmit={isResetMode ? handleResetPassword : handleSubmit} className="space-y-5">
                             <div className="space-y-2">
-                                <div className="flex justify-between items-center ml-1">
-                                    <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Contraseña</label>
-                                    <button
-                                        type="button"
-                                        onClick={() => {
-                                            setIsResetMode(true);
-                                            setError('');
-                                            setSuccess('');
-                                        }}
-                                        className="text-[10px] font-bold text-primary hover:text-primary/80 uppercase tracking-wider transition-colors"
-                                    >
-                                        ¿Olvidaste tu contraseña?
-                                    </button>
-                                </div>
+                                <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest ml-1">Email Corporativo</label>
                                 <div className="relative group">
-                                    <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" />
+                                    <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" />
                                     <input
                                         required
-                                        type={showPassword ? "text" : "password"}
-                                        placeholder="••••••••"
-                                        className="w-full bg-slate-950 border-none ring-1 ring-slate-800 focus:ring-2 focus:ring-primary rounded-xl py-3.5 pl-12 pr-12 text-sm text-white transition-all outline-none"
-                                        value={password}
-                                        onChange={(e) => setPassword(e.target.value)}
+                                        type="email"
+                                        placeholder="correo@empresa.com"
+                                        className="w-full bg-slate-950 border-none ring-1 ring-slate-800 focus:ring-2 focus:ring-primary rounded-xl py-3.5 pl-12 text-sm text-white transition-all outline-none"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
                                     />
-                                    <button
-                                        type="button"
-                                        onClick={() => setShowPassword(!showPassword)}
-                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
-                                    >
-                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                                    </button>
-                                </div>
-
-                                <div className="pt-2 flex items-center">
-                                    <label className="flex items-center gap-2 cursor-pointer group">
-                                        <div className="relative flex items-center justify-center">
-                                            <input
-                                                type="checkbox"
-                                                className="peer sr-only"
-                                                checked={rememberMe}
-                                                onChange={(e) => setRememberMe(e.target.checked)}
-                                            />
-                                            <div className="w-4 h-4 bg-slate-950 border border-slate-700 rounded peer-checked:bg-primary peer-checked:border-primary transition-colors"></div>
-                                            <svg className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                                <path d="M11.6666 3.5L5.24992 9.91667L2.33325 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                                            </svg>
-                                        </div>
-                                        <span className="text-[11px] font-bold text-slate-400 group-hover:text-white transition-colors uppercase tracking-wider">Recordarme</span>
-                                    </label>
                                 </div>
                             </div>
-                        )}
 
-                        <button
-                            disabled={loading}
-                            type="submit"
-                            className="w-full bg-primary hover:brightness-110 disabled:opacity-50 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 active:scale-95"
-                        >
-                            {loading ? (
-                                <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                            ) : (
-                                <>
-                                    {isResetMode ? <Send size={18} /> : <LogIn size={18} />}
-                                    {isResetMode ? 'Enviar Enlace de Recuperación' : 'Acceder al Sistema'}
-                                </>
+                            {!isResetMode && (
+                                <div className="space-y-2">
+                                    <div className="flex justify-between items-center ml-1">
+                                        <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Contraseña</label>
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setIsResetMode(true);
+                                                setError('');
+                                                setSuccess('');
+                                            }}
+                                            className="text-[10px] font-bold text-primary hover:text-primary/80 uppercase tracking-wider transition-colors"
+                                        >
+                                            ¿Olvidaste tu contraseña?
+                                        </button>
+                                    </div>
+                                    <div className="relative group">
+                                        <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" />
+                                        <input
+                                            required
+                                            type={showPassword ? "text" : "password"}
+                                            placeholder="••••••••"
+                                            className="w-full bg-slate-950 border-none ring-1 ring-slate-800 focus:ring-2 focus:ring-primary rounded-xl py-3.5 pl-12 pr-12 text-sm text-white transition-all outline-none"
+                                            value={password}
+                                            onChange={(e) => setPassword(e.target.value)}
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowPassword(!showPassword)}
+                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                                        >
+                                            {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                        </button>
+                                    </div>
+
+                                    <div className="pt-2 flex items-center">
+                                        <label className="flex items-center gap-2 cursor-pointer group">
+                                            <div className="relative flex items-center justify-center">
+                                                <input
+                                                    type="checkbox"
+                                                    className="peer sr-only"
+                                                    checked={rememberMe}
+                                                    onChange={(e) => setRememberMe(e.target.checked)}
+                                                />
+                                                <div className="w-4 h-4 bg-slate-950 border border-slate-700 rounded peer-checked:bg-primary peer-checked:border-primary transition-colors"></div>
+                                                <svg className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                    <path d="M11.6666 3.5L5.24992 9.91667L2.33325 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                                </svg>
+                                            </div>
+                                            <span className="text-[11px] font-bold text-slate-400 group-hover:text-white transition-colors uppercase tracking-wider">Recordarme</span>
+                                        </label>
+                                    </div>
+                                </div>
                             )}
-                        </button>
-                    </form>
-                </div>
+
+                            <button
+                                disabled={loading}
+                                type="submit"
+                                className="w-full bg-primary hover:brightness-110 disabled:opacity-50 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 active:scale-95"
+                            >
+                                {loading ? (
+                                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                ) : (
+                                    <>
+                                        {isResetMode ? <Send size={18} /> : <LogIn size={18} />}
+                                        {isResetMode ? 'Enviar Enlace de Recuperación' : 'Acceder al Sistema'}
+                                    </>
+                                )}
+                            </button>
+                        </form>
                     </div>
 
                     {/* Footer Inside Right Pane */}
