@@ -1,5 +1,5 @@
 -- ============================================================
--- VisitFlow — PostgreSQL Schema
+-- Visitas Hub RD — PostgreSQL Schema
 -- Migración desde Firebase Firestore
 -- ============================================================
 

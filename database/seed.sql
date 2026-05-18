@@ -1,5 +1,5 @@
 -- ============================================================
--- VisitFlow — Datos Iniciales (Seed)
+-- Visitas Hub RD — Datos Iniciales (Seed)
 -- ============================================================
 
 -- Organización inicial: GMV

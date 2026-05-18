@@ -23,7 +23,7 @@ export const initRealtime = (httpServer) => {
 
     // 2. Conexión dedicada de PostgreSQL para escuchar eventos
     const client = new pg.Client({
-        connectionString: process.env.DATABASE_URL || 'postgres://postgres:zX9!nQ2pL_7tR4vB@31.97.100.82:8432/visitflow'
+        connectionString: process.env.DATABASE_URL || 'postgres://postgres:zX9!nQ2pL_7tR4vB@31.97.100.82:8432/vhrd'
     });
 
     client.connect()

@@ -6,7 +6,7 @@ const pool = new pg.Pool({
     port: 8432,
     user: 'postgres',
     password: 'zX9!nQ2pL_7tR4vB',
-    database: 'visitflow'
+    database: 'vhrd'
 });
 
 const hash = await bcrypt.hash('admin123', 10);

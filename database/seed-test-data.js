@@ -1,5 +1,5 @@
 /**
- * VisitFlow — Carga de Datos de Prueba
+ * Visitas Hub RD — Carga de Datos de Prueba
  * Inserta datos realistas dominicanos para testing
  */
 import pg from 'pg';
@@ -10,7 +10,7 @@ const pool = new pg.Pool({
     port: 8432,
     user: 'postgres',
     password: 'zX9!nQ2pL_7tR4vB',
-    database: 'visitflow'
+    database: 'vhrd'
 });
 
 const ORG_ID = 'a0000000-0000-0000-0000-000000000001'; // GMV

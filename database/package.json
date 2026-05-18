@@ -1,5 +1,5 @@
 {
-  "name": "visitflow-db-setup",
+  "name": "vhrd-db-setup",
   "type": "module",
   "scripts": {
     "setup": "node database/setup.js"

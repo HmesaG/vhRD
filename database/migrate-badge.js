@@ -5,7 +5,7 @@ const DB_HOST = process.env.DB_HOST || '31.97.100.82';
 const DB_PORT = process.env.DB_PORT || 8432;
 const DB_USER = process.env.DB_USER || 'postgres';
 const DB_PASSWORD = process.env.DB_PASSWORD || 'zX9!nQ2pL_7tR4vB';
-const DB_NAME = 'visitflow';
+const DB_NAME = 'vhrd';
 
 async function migrate() {
     console.log(`🔌 Connecting to database ${DB_NAME} at ${DB_HOST}:${DB_PORT}...`);

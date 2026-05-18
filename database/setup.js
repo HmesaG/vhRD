@@ -1,6 +1,6 @@
 /**
  * Database Setup Script
- * Creates the 'visitflow' database and runs schema + seed SQL
+ * Creates the 'vhrd' database and runs schema + seed SQL
  * Run: node database/setup.js
  */
 import pg from 'pg';
@@ -14,10 +14,10 @@ const DB_HOST = process.env.DB_HOST || '31.97.100.82';
 const DB_PORT = process.env.DB_PORT || 8432;
 const DB_USER = process.env.DB_USER || 'postgres';
 const DB_PASSWORD = process.env.DB_PASSWORD || 'zX9!nQ2pL_7tR4vB';
-const DB_NAME = 'visitflow';
+const DB_NAME = 'vhrd';
 
 async function setup() {
-    // Step 1: Connect to default 'postgres' database and create 'visitflow' db
+    // Step 1: Connect to default 'postgres' database and create 'vhrd' db
     console.log(`🔌 Connecting to PostgreSQL at ${DB_HOST}:${DB_PORT}...`);
     
     const adminPool = new pg.Pool({
@@ -55,7 +55,7 @@ async function setup() {
         process.exit(1);
     }
 
-    // Step 2: Connect to 'visitflow' database and run schema
+    // Step 2: Connect to 'vhrd' database and run schema
     console.log(`\n📋 Running schema on '${DB_NAME}'...`);
     
     const appPool = new pg.Pool({

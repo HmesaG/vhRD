@@ -3,12 +3,12 @@ version: '3.8'
 services:
   postgres:
     image: postgres:16-alpine
-    container_name: visitflow-db
+    container_name: vhrd-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: visitflow
-      POSTGRES_USER: visitflow
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-visitflow2026}
+      POSTGRES_DB: vhrd
+      POSTGRES_USER: vhrd
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-vhrd2026}
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
@@ -17,20 +17,20 @@ services:
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U visitflow -d visitflow"]
+      test: ["CMD-SHELL", "pg_isready -U vhrd -d vhrd"]
       interval: 5s
       timeout: 5s
       retries: 5
 
   api:
     build: ./server
-    container_name: visitflow-api
+    container_name: vhrd-api
     restart: unless-stopped
     environment:
       NODE_ENV: production
       PORT: 3001
-      DATABASE_URL: postgres://visitflow:${DB_PASSWORD:-visitflow2026}@postgres:5432/visitflow
-      JWT_SECRET: ${JWT_SECRET:-visitflow-secret-key-change-in-production}
+      DATABASE_URL: postgres://vhrd:${DB_PASSWORD:-vhrd2026}@postgres:5432/vhrd
+      JWT_SECRET: ${JWT_SECRET:-vhrd-secret-key-change-in-production}
       CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost}
     depends_on:
       postgres:
@@ -42,7 +42,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    container_name: visitflow-frontend
+    container_name: vhrd-frontend
     restart: unless-stopped
     depends_on:
       - api

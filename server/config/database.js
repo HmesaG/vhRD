@@ -3,7 +3,7 @@ import pg from 'pg';
 const { Pool } = pg;
 
 export const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgres://postgres:zX9!nQ2pL_7tR4vB@31.97.100.82:8432/visitflow',
+    connectionString: process.env.DATABASE_URL || 'postgres://postgres:zX9!nQ2pL_7tR4vB@31.97.100.82:8432/vhrd',
     max: 20,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 5000
