@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { LogIn, Lock, Mail, ArrowLeft, Send, Phone, Globe, Instagram, Facebook, Linkedin, X, User } from 'lucide-react';
+import { LogIn, Lock, Mail, ArrowLeft, Send, Phone, Globe, Instagram, Facebook, Linkedin, X, User, Eye, EyeOff } from 'lucide-react';
 
 const Login = () => {
     const { user } = useAuth();
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
+    const [rememberMe, setRememberMe] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
@@ -24,6 +26,14 @@ const Login = () => {
         }
     }, [user, navigate, from]);
 
+    useEffect(() => {
+        const savedEmail = localStorage.getItem('vhrd_remembered_email');
+        if (savedEmail) {
+            setEmail(savedEmail);
+            setRememberMe(true);
+        }
+    }, []);
+
     const { login } = useAuth();
 
     const handleSubmit = async (e) => {
@@ -33,6 +43,11 @@ const Login = () => {
         setSuccess('');
         try {
             await login(email, password);
+            if (rememberMe) {
+                localStorage.setItem('vhrd_remembered_email', email);
+            } else {
+                localStorage.removeItem('vhrd_remembered_email');
+            }
         } catch (err) {
             setError(err.message || 'Credenciales incorrectas. Por favor, intenta de nuevo.');
             setLoading(false);
@@ -158,12 +173,37 @@ const Login = () => {
                                     <Lock size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within:text-primary transition-colors" />
                                     <input
                                         required
-                                        type="password"
+                                        type={showPassword ? "text" : "password"}
                                         placeholder="••••••••"
-                                        className="w-full bg-slate-950 border-none ring-1 ring-slate-800 focus:ring-2 focus:ring-primary rounded-xl py-3.5 pl-12 text-sm text-white transition-all outline-none"
+                                        className="w-full bg-slate-950 border-none ring-1 ring-slate-800 focus:ring-2 focus:ring-primary rounded-xl py-3.5 pl-12 pr-12 text-sm text-white transition-all outline-none"
                                         value={password}
                                         onChange={(e) => setPassword(e.target.value)}
                                     />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                                    </button>
+                                </div>
+
+                                <div className="pt-2 flex items-center">
+                                    <label className="flex items-center gap-2 cursor-pointer group">
+                                        <div className="relative flex items-center justify-center">
+                                            <input
+                                                type="checkbox"
+                                                className="peer sr-only"
+                                                checked={rememberMe}
+                                                onChange={(e) => setRememberMe(e.target.checked)}
+                                            />
+                                            <div className="w-4 h-4 bg-slate-950 border border-slate-700 rounded peer-checked:bg-primary peer-checked:border-primary transition-colors"></div>
+                                            <svg className="absolute w-3 h-3 text-white opacity-0 peer-checked:opacity-100 transition-opacity pointer-events-none" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                                <path d="M11.6666 3.5L5.24992 9.91667L2.33325 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                                            </svg>
+                                        </div>
+                                        <span className="text-[11px] font-bold text-slate-400 group-hover:text-white transition-colors uppercase tracking-wider">Recordarme</span>
+                                    </label>
                                 </div>
                             </div>
                         )}
