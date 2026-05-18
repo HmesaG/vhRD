@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db, collection, addDoc, onSnapshot, doc, deleteDoc, query, where, updateDoc } from '../firebase';
+import { companiesApi } from '../services/api';
+import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { Trash2, Building2, Search, Plus, X, Loader2, Globe, Edit2 } from 'lucide-react';
@@ -18,23 +19,15 @@ const Companies = () => {
     const [formData, setFormData] = useState({ rnc: '', name: '' });
     const [searchingRnc, setSearchingRnc] = useState(false);
 
+    const fetchCompanies = useCallback(() => companiesApi.getAll(companyId), [companyId]);
+    const { data: fetchedCompanies, refresh: refreshCompanies } = usePolling(fetchCompanies, 5000, [companyId]);
+
     useEffect(() => {
-        if (!companyId) return;
-
-        const q = query(
-            collection(db, 'companies'),
-            where('companyId', '==', companyId)
-        );
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            // Client-side sort
-            docs.sort((a, b) => a.name.localeCompare(b.name));
-            setCompanies(docs);
-            setLoading(false);
-        });
-        return () => unsubscribe();
-    }, [companyId]);
+        if (!fetchedCompanies) return;
+        const sorted = [...fetchedCompanies].sort((a, b) => a.name.localeCompare(b.name));
+        setCompanies(sorted);
+        setLoading(false);
+    }, [fetchedCompanies]);
 
     const toTitleCase = (str) => {
         return str.toLowerCase().replace(/(^|\s)\S/g, (L) => L.toUpperCase());
@@ -102,17 +95,11 @@ const Companies = () => {
 
         try {
             if (isEditing) {
-                await updateDoc(doc(db, 'companies', editingId), {
-                    name,
-                    rnc: formData.rnc.trim()
-                });
+                await companiesApi.update(editingId, { name, rnc: formData.rnc.trim() });
             } else {
-                await addDoc(collection(db, 'companies'), {
-                    name,
-                    rnc: formData.rnc.trim(),
-                    companyId
-                });
+                await companiesApi.create({ name, rnc: formData.rnc.trim(), company_id: companyId });
             }
+            refreshCompanies();
             closeModal();
         } catch (err) { alert('Error: ' + err.message); }
     };
@@ -133,7 +120,7 @@ const Companies = () => {
 
     const handleDelete = async (id) => {
         if (confirm('¿Eliminar esta empresa?')) {
-            try { await deleteDoc(doc(db, 'companies', id)); }
+            try { await companiesApi.delete(id); refreshCompanies(); }
             catch (err) { alert('Error: ' + err.message); }
         }
     };

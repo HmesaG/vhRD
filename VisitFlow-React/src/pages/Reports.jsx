@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { db, collection, onSnapshot, query, orderBy, where } from '../firebase';
+import React, { useState, useEffect, useCallback } from 'react';
+import { visitsApi, areasApi } from '../services/api';
+import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import {
@@ -18,6 +19,7 @@ import {
 import { Line, Doughnut, Bar } from 'react-chartjs-2';
 import { Printer, TrendingUp, Users, Building, Calendar, Download, Layers, UserCheck } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useOrganizationLabels } from '../hooks/useOrganizationLabels';
 
 ChartJS.register(
     CategoryScale,
@@ -34,6 +36,7 @@ ChartJS.register(
 
 const Reports = () => {
     const { companyId } = useAuth();
+    const { hostSingular, csvHeaders, topRequestedTitle } = useOrganizationLabels();
     const [stats, setStats] = useState({ total: 0, avgTime: '---', active: 0, peakDay: '---' });
     const [visits, setVisits] = useState([]);
     const [areas, setAreas] = useState([]);
@@ -41,36 +44,41 @@ const Reports = () => {
     const [ranking, setRanking] = useState([]);
     const [timeFilter, setTimeFilter] = useState('30'); // days
 
+    const parseDate = (val) => {
+        if (!val) return null;
+        if (val.toDate) return val.toDate();
+        return new Date(val);
+    };
+
+    const fetchVisits = useCallback(() => visitsApi.getAll(companyId), [companyId]);
+    const { data: fetchedVisits } = usePolling(fetchVisits, 10000, [companyId]);
+
+    const fetchAreas = useCallback(() => areasApi.getAll(companyId), [companyId]);
+    const { data: fetchedAreas } = usePolling(fetchAreas, 30000, [companyId]);
+
     useEffect(() => {
-        if (!companyId) return;
+        if (!fetchedVisits) return;
+        const data = [...fetchedVisits].sort((a, b) => {
+            const dateA = parseDate(a.check_in) || new Date(0);
+            const dateB = parseDate(b.check_in) || new Date(0);
+            return dateB - dateA;
+        });
+        setVisits(data);
+        processData(data);
+        setLoading(false);
+    }, [fetchedVisits]);
 
-        const unsubs = [
-            onSnapshot(query(collection(db, 'visits'), where('companyId', '==', companyId)), (snapshot) => {
-                const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                data.sort((a, b) => {
-                    const dateA = a.check_in?.toDate ? a.check_in.toDate() : new Date(0);
-                    const dateB = b.check_in?.toDate ? b.check_in.toDate() : new Date(0);
-                    return dateB - dateA;
-                });
-                setVisits(data);
-                processData(data);
-                setLoading(false);
-            }),
-            onSnapshot(query(collection(db, 'areas'), where('companyId', '==', companyId)), (snapshot) => {
-                setAreas(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-            })
-        ];
-
-        return () => unsubs.forEach(unsub => unsub());
-    }, [companyId]);
+    useEffect(() => {
+        if (fetchedAreas) setAreas(fetchedAreas);
+    }, [fetchedAreas]);
 
     const processData = (data) => {
         const finishedVisits = data.filter(v => v.check_out && v.check_in);
         let avgTime = '---';
         if (finishedVisits.length > 0) {
             const totalMs = finishedVisits.reduce((acc, v) => {
-                const checkIn = v.check_in?.toDate ? v.check_in.toDate() : null;
-                const checkOut = v.check_out?.toDate ? v.check_out.toDate() : null;
+                const checkIn = parseDate(v.check_in);
+                const checkOut = parseDate(v.check_out);
                 if (checkIn && checkOut) return acc + (checkOut - checkIn);
                 return acc;
             }, 0);
@@ -90,8 +98,9 @@ const Reports = () => {
         // Peak Day
         const dayCounts = {};
         data.forEach(v => {
-            if (v.check_in?.toDate) {
-                const key = v.check_in.toDate().toLocaleDateString('es-ES', { weekday: 'long' });
+            const d = parseDate(v.check_in);
+            if (d) {
+                const key = d.toLocaleDateString('es-ES', { weekday: 'long' });
                 dayCounts[key] = (dayCounts[key] || 0) + 1;
             }
         });
@@ -119,8 +128,9 @@ const Reports = () => {
             counts[key] = 0;
         }
         visits.forEach(v => {
-            if (v.check_in?.toDate) {
-                const key = v.check_in.toDate().toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
+            const d = parseDate(v.check_in);
+            if (d) {
+                const key = d.toLocaleDateString('es-ES', { day: '2-digit', month: '2-digit' });
                 if (counts[key] !== undefined) counts[key]++;
             }
         });
@@ -187,7 +197,7 @@ const Reports = () => {
     };
 
     const exportCSV = () => {
-        const headers = ['Nombre', 'Cédula', 'Empresa', 'Empleado', 'Motivo', 'Área', 'Entrada', 'Salida', 'Estado'];
+        const headers = csvHeaders;
         const rows = visits.map(v => [
             v.full_name,
             v.document_id || 'N/A',
@@ -195,8 +205,8 @@ const Reports = () => {
             v.employee,
             v.reason,
             areas.find(a => a.id === v.areaId)?.name || 'N/A',
-            v.check_in?.toDate().toLocaleString() || '',
-            v.check_out?.toDate().toLocaleString() || '',
+            parseDate(v.check_in)?.toLocaleString() || '',
+            parseDate(v.check_out)?.toLocaleString() || '',
             v.status
         ]);
 
@@ -321,7 +331,7 @@ const Reports = () => {
                             />
                         </div>
                     </ChartCard>
-                    <ChartCard title="Top Empleados (Solicitados)" className="lg:col-span-2">
+                    <ChartCard title={topRequestedTitle} className="lg:col-span-2">
                         <Bar
                             data={getHostRanking()}
                             options={{

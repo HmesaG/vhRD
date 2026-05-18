@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db, collection, addDoc, onSnapshot, doc, deleteDoc, query, where, updateDoc, writeBatch } from '../firebase';
+import { areasApi } from '../services/api';
+import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { Trash2, MapPin, Layers, Plus, X, Search, Edit2, Download } from 'lucide-react';
@@ -16,22 +17,15 @@ const AreasManagement = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [importing, setImporting] = useState(false);
 
+    const fetchAreas = useCallback(() => areasApi.getAll(companyId), [companyId]);
+    const { data: fetchedAreas, refresh: refreshAreas } = usePolling(fetchAreas, 5000, [companyId]);
+
     useEffect(() => {
-        if (!companyId) return;
-
-        const q = query(
-            collection(db, 'areas'),
-            where('companyId', '==', companyId)
-        );
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            data.sort((a, b) => a.level.localeCompare(b.level, undefined, { numeric: true }) || a.name.localeCompare(b.name));
-            setAreas(data);
-            setLoading(false);
-        });
-        return () => unsubscribe();
-    }, [companyId]);
+        if (!fetchedAreas) return;
+        const sorted = [...fetchedAreas].sort((a, b) => a.level.localeCompare(b.level, undefined, { numeric: true }) || a.name.localeCompare(b.name));
+        setAreas(sorted);
+        setLoading(false);
+    }, [fetchedAreas]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -39,17 +33,18 @@ const AreasManagement = () => {
 
         try {
             if (editingArea) {
-                await updateDoc(doc(db, 'areas', editingArea.id), {
+                await areasApi.update(editingArea.id, {
                     name: formData.name.trim(),
                     level: formData.level.trim()
                 });
             } else {
-                await addDoc(collection(db, 'areas'), {
+                await areasApi.create({
                     name: formData.name.trim(),
                     level: formData.level.trim(),
-                    companyId
+                    company_id: companyId
                 });
             }
+            refreshAreas();
             setIsModalOpen(false);
             setEditingArea(null);
             setFormData({ name: '', level: '' });
@@ -61,7 +56,8 @@ const AreasManagement = () => {
     const handleDelete = async (id) => {
         if (confirm('¿Eliminar esta área? Esto podría afectar los registros de visitas activos.')) {
             try {
-                await deleteDoc(doc(db, 'areas', id));
+                await areasApi.delete(id);
+                refreshAreas();
             } catch (err) {
                 alert('Error: ' + err.message);
             }
@@ -76,10 +72,10 @@ const AreasManagement = () => {
         reader.onload = async (event) => {
             const content = event.target.result;
             const lines = content.split('\n');
-            const batch = writeBatch(db);
             let count = 0;
 
             const startIdx = lines[0].toLowerCase().includes('nivel') || lines[0].toLowerCase().includes('planta') ? 1 : 0;
+            const promises = [];
 
             for (let i = startIdx; i < lines.length; i++) {
                 const line = lines[i].trim();
@@ -88,24 +84,17 @@ const AreasManagement = () => {
                 const [level, name] = line.split(',').map(s => s.trim());
                 if (!level || !name) continue;
 
-                const newDocRef = doc(collection(db, 'areas'));
-                batch.set(newDocRef, {
-                    level,
-                    name,
-                    companyId,
-                    created_at: new Date()
-                });
+                promises.push(areasApi.create({
+                    level, name, company_id: companyId
+                }));
                 count++;
-
-                if (count % 499 === 0) {
-                    await batch.commit();
-                }
             }
 
             if (count > 0) {
                 setImporting(true);
                 try {
-                    await batch.commit();
+                    await Promise.all(promises);
+                    refreshAreas();
                     alert(`Éxito: Se importaron ${count} áreas/departamentos.`);
                 } catch (err) {
                     alert('Error en importación: ' + err.message);

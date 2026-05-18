@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { db, collection, onSnapshot, query, orderBy, limit, doc, updateDoc, deleteDoc, serverTimestamp, where } from '../firebase';
+import React, { useState, useEffect, useCallback } from 'react';
+import { visitsApi } from '../services/api';
+import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { useNavigate } from 'react-router-dom';
 import { Camera, Calendar, User, Building, LogOut, Mail, Send, Trash2, Search, Shield, Users, BarChart3, PlusCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import VisitModal from '../components/VisitModal';
+import { useOrganizationLabels } from '../hooks/useOrganizationLabels';
 
 const StatCard = ({ title, value, icon, color = "text-primary" }) => (
     <div className="bg-white dark:bg-slate-900 p-3 sm:p-5 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
@@ -21,6 +23,7 @@ const StatCard = ({ title, value, icon, color = "text-primary" }) => (
 
 const Dashboard = () => {
     const { role, companyId } = useAuth();
+    const { hostSingular, singularLow } = useOrganizationLabels();
     const [stats, setStats] = useState({ today: 0, active: 0, pending: 0 });
     const [recentVisits, setRecentVisits] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -45,8 +48,8 @@ const Dashboard = () => {
 
     const formatDuration = (start, end) => {
         if (!start) return '--';
-        const startTime = start.toDate ? start.toDate() : start;
-        const endTime = end ? (end.toDate ? end.toDate() : end) : now;
+        const startTime = new Date(start);
+        const endTime = end ? new Date(end) : now;
         const diffMs = endTime - startTime;
         if (diffMs < 0) return '0m';
         const diffHrs = Math.floor(diffMs / 3600000);
@@ -55,35 +58,26 @@ const Dashboard = () => {
         return `${diffMins}m`;
     };
 
+    const fetchVisits = useCallback(() => visitsApi.getAll(companyId), [companyId]);
+    const { data: fetchedVisits, refresh: refreshVisits } = usePolling(fetchVisits, 5000, [companyId]);
+
     useEffect(() => {
-        if (!companyId) return;
-        const q = query(
-            collection(db, 'visits'),
-            where('companyId', '==', companyId)
-        );
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            docs.sort((a, b) => {
-                const dateA = a.check_in?.toDate ? a.check_in.toDate() : new Date(0);
-                const dateB = b.check_in?.toDate ? b.check_in.toDate() : new Date(0);
-                return dateB - dateA;
-            });
-            setRecentVisits(docs);
-            const today = new Date().toDateString();
-            const todayVisits = docs.filter(v => v.check_in && v.check_in.toDate().toDateString() === today);
-            setStats({
-                today: todayVisits.length,
-                active: docs.filter(v => !v.check_out).length,
-                pending: docs.filter(v => {
-                    if (!v.check_in) return false;
-                    const diff = new Date() - v.check_in.toDate();
-                    return !v.check_out && diff > (4 * 60 * 60 * 1000);
-                }).length
-            });
-            setLoading(false);
+        if (!fetchedVisits) return;
+        const docs = [...fetchedVisits].sort((a, b) => new Date(b.check_in) - new Date(a.check_in));
+        setRecentVisits(docs);
+        const today = new Date().toDateString();
+        const todayVisits = docs.filter(v => v.check_in && new Date(v.check_in).toDateString() === today);
+        setStats({
+            today: todayVisits.length,
+            active: docs.filter(v => !v.check_out).length,
+            pending: docs.filter(v => {
+                if (!v.check_in) return false;
+                const diff = new Date() - new Date(v.check_in);
+                return !v.check_out && diff > (4 * 60 * 60 * 1000);
+            }).length
         });
-        return () => unsubscribe();
-    }, [companyId]);
+        setLoading(false);
+    }, [fetchedVisits]);
 
     const filteredVisits = recentVisits.filter(v =>
         (v.full_name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -94,23 +88,21 @@ const Dashboard = () => {
     const handleCheckOut = async (id) => {
         if (confirm('¿Registrar salida de este visitante?')) {
             try {
-                await updateDoc(doc(db, 'visits', id), {
-                    check_out: serverTimestamp(),
-                    status: 'Salida'
-                });
+                await visitsApi.update(id, { check_out: true, status: 'Salida' });
+                refreshVisits();
             } catch (err) { alert('Error: ' + err.message); }
         }
     };
 
     const handleEmail = (row) => {
-        if (!row.visitor_email) return alert('El empleado no tiene email registrado.');
+        if (!row.visitor_email) return alert(`El ${singularLow} no tiene email registrado.`);
         const subject = encodeURIComponent(`Aviso de Visita: ${row.full_name}`);
         const body = encodeURIComponent(`Hola ${row.employee},\n\nTe informamos que ${row.full_name} de la empresa ${row.company} se encuentra en recepción para una visita por el motivo: ${row.reason}.\n\nSaludos,\nSistema de Visitas.`);
         window.location.href = `mailto:${row.visitor_email}?subject=${subject}&body=${body}`;
     };
 
     const handleWhatsApp = (row) => {
-        if (!row.visitor_phone) return alert('El empleado no tiene WhatsApp registrado.');
+        if (!row.visitor_phone) return alert(`El ${singularLow} no tiene WhatsApp registrado.`);
         const phone = row.visitor_phone.replace(/\D/g, '');
         const text = encodeURIComponent(`Hola, ${row.employee}. El visitante ${row.full_name} de la empresa ${row.company} ha llegado para verte.`);
         window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
@@ -141,7 +133,7 @@ const Dashboard = () => {
             )
         },
         {
-            header: 'Motivo / Empleado',
+            header: `Motivo / ${hostSingular}`,
             render: (row) => (
                 <div className="min-w-0">
                     <div className="flex items-center gap-2">
@@ -160,7 +152,7 @@ const Dashboard = () => {
             header: 'Fecha',
             render: (row) => (
                 <div className="text-xs font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                    {row.check_in ? row.check_in.toDate().toLocaleDateString() : '--/--/----'}
+                    {row.check_in ? new Date(row.check_in).toLocaleDateString() : '--/--/----'}
                 </div>
             )
         },
@@ -170,12 +162,12 @@ const Dashboard = () => {
                 <div className="space-y-1">
                     <p className="text-xs flex items-center gap-1.5 font-medium whitespace-nowrap">
                         <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0"></span>
-                        {row.check_in ? row.check_in.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                        {row.check_in ? new Date(row.check_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
                     </p>
                     {row.check_out && (
                         <p className="text-xs flex items-center gap-1.5 text-slate-400 whitespace-nowrap">
                             <span className="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0"></span>
-                            {row.check_out.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {new Date(row.check_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                     )}
                 </div>
@@ -239,7 +231,7 @@ const Dashboard = () => {
     ];
 
     return (
-        <Layout title="VisitFlow Hub">
+        <Layout title="Visitas Hub RD">
             <div className="space-y-6 sm:space-y-8 max-w-7xl mx-auto w-full pb-10">
                 {/* Mobile Quick Actions Hub - Only on small screens */}
                 <div className="lg:hidden animate-in fade-in slide-in-from-top-4 duration-700">

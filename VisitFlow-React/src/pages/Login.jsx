@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { signInWithEmailAndPassword, auth, sendPasswordResetEmail } from '../firebase';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { LogIn, Lock, Mail, ArrowLeft, Send, Phone, Globe, Instagram, Facebook, Linkedin, X, User } from 'lucide-react';
 
@@ -25,15 +24,17 @@ const Login = () => {
         }
     }, [user, navigate, from]);
 
+    const { login } = useAuth();
+
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         setError('');
         setSuccess('');
         try {
-            await signInWithEmailAndPassword(auth, email, password);
+            await login(email, password);
         } catch (err) {
-            setError('Credenciales incorrectas. Por favor, intenta de nuevo.');
+            setError(err.message || 'Credenciales incorrectas. Por favor, intenta de nuevo.');
             setLoading(false);
         }
     };
@@ -48,22 +49,22 @@ const Login = () => {
         setError('');
         setSuccess('');
         try {
-            await sendPasswordResetEmail(auth, email);
-            setSuccess('Se ha enviado un enlace de recuperación a tu correo.');
+            // TODO: Implement password reset endpoint in backend
+            setSuccess('Funcionalidad de recuperación en desarrollo. Contacte al administrador.');
             setLoading(false);
         } catch (err) {
-            setError('Error al enviar el correo. Verifica que la dirección sea correcta.');
+            setError('Error al procesar la solicitud.');
             setLoading(false);
         }
     };
 
     const handleRequestService = (e) => {
         e.preventDefault();
-        const message = `*SOLICITUD DE SERVICIO - VISITFLOW*\n\n` +
+        const message = `*SOLICITUD DE SERVICIO - VISITAS HUB RD*\n\n` +
             `*Nombre:* ${requestData.name}\n` +
             `*Correo:* ${requestData.email}\n` +
             `*Número:* ${requestData.phone}\n\n` +
-            `Hola, me gustaría recibir más información sobre VisitFlow.`;
+            `Hola, me gustaría recibir más información sobre Visitas Hub RD.`;
 
         const waUrl = `https://wa.me/18097649811?text=${encodeURIComponent(message)}`;
         window.open(waUrl, '_blank');
@@ -81,11 +82,11 @@ const Login = () => {
                     <div className="w-32 h-32 sm:w-48 sm:h-48 mx-auto mb-8 sm:mb-10 transform group-hover:scale-105 transition-all duration-700">
                         <img
                             src="/logo.png"
-                            alt="VisitFlow Logo"
+                            alt="Visitas Hub RD Logo"
                             className="w-full h-full object-contain filter drop-shadow-[0_0_30px_rgba(245,130,32,0.4)]"
                         />
                     </div>
-                    <h1 className="text-3xl sm:text-4xl font-black text-white text-center tracking-tighter mb-2 italic">VisitFlow</h1>
+                    <h1 className="text-3xl sm:text-4xl font-black text-white text-center tracking-tighter mb-2 italic">Visitas Hub RD</h1>
                     <div className="h-1 w-10 sm:w-12 bg-primary mx-auto rounded-full mb-4" />
                     <p className="text-slate-500 text-[10px] sm:text-[11px] font-black text-center uppercase tracking-[0.3em]">Access Control System</p>
                 </div>

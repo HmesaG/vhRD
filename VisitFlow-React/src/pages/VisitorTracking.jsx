@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db, collection, query, where, onSnapshot } from '../firebase';
+import { visitsApi, areasApi } from '../services/api';
+import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import {
     MapPin, Clock, User, Building2, LogIn, LogOut,
@@ -326,51 +327,47 @@ const VisitorTracking = () => {
         return () => clearInterval(t);
     }, []);
 
-    useEffect(() => {
-        if (!companyId) return;
-        const q = query(collection(db, 'areas'), where('companyId', '==', companyId));
-        const unsub = onSnapshot(q, (snap) => {
-            const map = {};
-            snap.docs.forEach(d => { map[d.id] = d.data(); });
-            setAreas(map);
-        });
-        return () => unsub();
-    }, [companyId]);
+    const fetchAreas = useCallback(() => areasApi.getAll(companyId), [companyId]);
+    const { data: fetchedAreas } = usePolling(fetchAreas, 15000, [companyId]);
 
     useEffect(() => {
-        if (!companyId) return;
-        setLoading(true);
-        const q = query(collection(db, 'visits'), where('companyId', '==', companyId));
-        const unsub = onSnapshot(q, (snap) => {
-            const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-            docs.sort((a, b) => {
-                if (!a.check_out && b.check_out) return -1;
-                if (a.check_out && !b.check_out) return 1;
-                const da = a.check_in?.toDate ? a.check_in.toDate() : new Date(0);
-                const db2 = b.check_in?.toDate ? b.check_in.toDate() : new Date(0);
-                return db2 - da;
-            });
-            setVisits(docs);
-            setLoading(false);
-            setLastRefresh(new Date());
+        if (!fetchedAreas) return;
+        const map = {};
+        fetchedAreas.forEach(a => { map[a.id] = a; });
+        setAreas(map);
+    }, [fetchedAreas]);
+
+    const fetchVisits = useCallback(() => visitsApi.getAll(companyId), [companyId]);
+    const { data: fetchedVisits } = usePolling(fetchVisits, 5000, [companyId]);
+
+    useEffect(() => {
+        if (!fetchedVisits) return;
+        const docs = [...fetchedVisits].sort((a, b) => {
+            if (!a.check_out && b.check_out) return -1;
+            if (a.check_out && !b.check_out) return 1;
+            const parseD = (v) => v ? (v.toDate ? v.toDate() : new Date(v)) : new Date(0);
+            return parseD(b.check_in) - parseD(a.check_in);
         });
-        return () => unsub();
-    }, [companyId]);
+        setVisits(docs);
+        setLoading(false);
+        setLastRefresh(new Date());
+    }, [fetchedVisits]);
 
     const stats = useMemo(() => {
+        const parseD = (v) => v ? (v.toDate ? v.toDate() : new Date(v)) : null;
         const active = visits.filter(v => !v.check_out).length;
         const completed = visits.filter(v => v.check_out).length;
         const today = visits.filter(v => {
             if (!v.check_in) return false;
-            const d = v.check_in.toDate ? v.check_in.toDate() : new Date(v.check_in);
-            return d.toDateString() === new Date().toDateString();
+            const d = parseD(v.check_in);
+            return d && d.toDateString() === new Date().toDateString();
         }).length;
         const completedVisits = visits.filter(v => v.check_out && v.check_in);
         const avgDuration = completedVisits.length > 0
             ? Math.round(completedVisits.reduce((acc, v) => {
-                const s = v.check_in.toDate ? v.check_in.toDate() : new Date(v.check_in);
-                const e = v.check_out.toDate ? v.check_out.toDate() : new Date(v.check_out);
-                return acc + (e - s) / 60000;
+                const s = parseD(v.check_in);
+                const e = parseD(v.check_out);
+                return acc + ((e && s) ? (e - s) / 60000 : 0);
             }, 0) / completedVisits.length)
             : 0;
         return { active, completed, today, avgDuration };

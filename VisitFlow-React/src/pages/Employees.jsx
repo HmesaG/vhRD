@@ -1,12 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db, collection, addDoc, onSnapshot, doc, deleteDoc, query, where, updateDoc, writeBatch } from '../firebase';
+import { employeesApi, areasApi } from '../services/api';
+import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { Trash2, UserRound, Briefcase, Search, Edit2, X, Download } from 'lucide-react';
+import { useOrganizationLabels } from '../hooks/useOrganizationLabels';
 
 const Employees = () => {
     const { companyId, role } = useAuth();
+    const { 
+        pageTitle, newButton, editButton, saveButton, updateButton,
+        deleteConfirm, emptyMessage, countLabel, csvTemplateFilename, importSuccess,
+        singular, plural, singularLow, pluralLow
+    } = useOrganizationLabels();
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({ name: '', area: '', email: '', whatsapp: '' });
@@ -17,31 +24,22 @@ const Employees = () => {
     const [filterArea, setFilterArea] = useState('all');
     const [importing, setImporting] = useState(false);
 
+    const fetchEmployees = useCallback(() => employeesApi.getAll(companyId), [companyId]);
+    const { data: fetchedEmployees, refresh: refreshEmployees } = usePolling(fetchEmployees, 5000, [companyId]);
+
+    const fetchAreas = useCallback(() => areasApi.getAll(companyId), [companyId]);
+    const { data: fetchedAreas } = usePolling(fetchAreas, 10000, [companyId]);
+
     useEffect(() => {
-        if (!companyId) return;
+        if (!fetchedEmployees) return;
+        const sorted = [...fetchedEmployees].sort((a, b) => a.name.localeCompare(b.name));
+        setEmployees(sorted);
+        setLoading(false);
+    }, [fetchedEmployees]);
 
-        const q = query(
-            collection(db, 'employees'),
-            where('companyId', '==', companyId)
-        );
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            data.sort((a, b) => a.name.localeCompare(b.name));
-            setEmployees(data);
-            setLoading(false);
-        });
-
-        const qAreas = query(collection(db, 'areas'), where('companyId', '==', companyId));
-        const unsubAreas = onSnapshot(qAreas, (snapshot) => {
-            setAreas(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-        });
-
-        return () => {
-            unsubscribe();
-            unsubAreas();
-        };
-    }, [companyId]);
+    useEffect(() => {
+        if (fetchedAreas) setAreas(fetchedAreas);
+    }, [fetchedAreas]);
 
     const toTitleCase = (str) => {
         return str.toLowerCase().replace(/(^|\s)\S/g, (L) => L.toUpperCase());
@@ -56,23 +54,22 @@ const Employees = () => {
 
         try {
             if (isEditing) {
-                await updateDoc(doc(db, 'employees', editingId), {
-                    name,
-                    area,
+                await employeesApi.update(editingId, {
+                    name, area,
                     email: formData.email.trim(),
                     whatsapp: formData.whatsapp.trim()
                 });
                 setIsEditing(false);
                 setEditingId(null);
             } else {
-                await addDoc(collection(db, 'employees'), {
-                    name,
-                    area,
+                await employeesApi.create({
+                    name, area,
                     email: formData.email.trim(),
                     whatsapp: formData.whatsapp.trim(),
-                    companyId
+                    company_id: companyId
                 });
             }
+            refreshEmployees();
             setFormData({ name: '', area: '', email: '', whatsapp: '' });
         } catch (err) { alert('Error: ' + err.message); }
     };
@@ -96,8 +93,8 @@ const Employees = () => {
     };
 
     const handleDelete = async (id) => {
-        if (confirm('¿Eliminar este empleado?')) {
-            try { await deleteDoc(doc(db, 'employees', id)); }
+        if (confirm(deleteConfirm)) {
+            try { await employeesApi.delete(id); refreshEmployees(); }
             catch (err) { alert('Error: ' + err.message); }
         }
     };
@@ -110,11 +107,10 @@ const Employees = () => {
         reader.onload = async (event) => {
             const content = event.target.result;
             const lines = content.split('\n');
-            const batch = writeBatch(db);
             let count = 0;
 
-            // Skip header if it exists
             const startIdx = lines[0].toLowerCase().includes('nombre') ? 1 : 0;
+            const promises = [];
 
             for (let i = startIdx; i < lines.length; i++) {
                 const line = lines[i].trim();
@@ -123,37 +119,29 @@ const Employees = () => {
                 const [name, area, email, whatsapp] = line.split(',').map(s => s.trim());
                 if (!name || !area) continue;
 
-                const newDocRef = doc(collection(db, 'employees'));
-                batch.set(newDocRef, {
+                promises.push(employeesApi.create({
                     name: toTitleCase(name),
-                    area: area,
+                    area,
                     email: email || '',
                     whatsapp: whatsapp || '',
-                    companyId,
-                    created_at: new Date()
-                });
+                    company_id: companyId
+                }));
                 count++;
-
-                // Firestore batch limit is 500
-                if (count % 499 === 0) {
-                    await batch.commit();
-                    // Needs a new batch after commit? Actually, better to just wait or use multiple batches if needed.
-                    // For simplicity, we assume small imports or fix this.
-                }
             }
 
             if (count > 0) {
                 setImporting(true);
                 try {
-                    await batch.commit();
-                    alert(`Éxito: Se importaron ${count} empleados.`);
+                    await Promise.all(promises);
+                    refreshEmployees();
+                    alert(importSuccess(count));
                 } catch (err) {
                     alert('Error en importación: ' + err.message);
                 } finally {
                     setImporting(false);
                 }
             }
-            e.target.value = null; // Reset input
+            e.target.value = null;
         };
         reader.readAsText(file);
     };
@@ -164,7 +152,7 @@ const Employees = () => {
         const blob = new Blob([`${headers}\n${example}`], { type: 'text/csv;charset=utf-8;' });
         const link = document.createElement('a');
         link.href = URL.createObjectURL(blob);
-        link.download = 'Plantilla_Empleados.csv';
+        link.download = csvTemplateFilename;
         link.click();
     };
 
@@ -216,7 +204,7 @@ const Employees = () => {
             header: 'Estado',
             render: () => (
                 <span className="px-2 py-1 rounded-md text-[10px] font-bold uppercase bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                    Empleado Activo
+                    {singular} Activo
                 </span>
             )
         },
@@ -245,7 +233,7 @@ const Employees = () => {
     ];
 
     return (
-        <Layout title="Gestión de Empleados">
+        <Layout title={pageTitle}>
             <div className="max-w-6xl mx-auto space-y-6">
                 {/* Filter bar */}
                 <div className="bg-white dark:bg-slate-900 p-3 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-3">
@@ -280,7 +268,7 @@ const Employees = () => {
                     {/* Meta row */}
                     <div className="flex items-center justify-between">
                         <span className="text-[10px] text-slate-400 font-medium">
-                            {filteredEmployees.length} empleado{filteredEmployees.length !== 1 ? 's' : ''}
+                            {countLabel(filteredEmployees.length)}
                         </span>
                         {(searchTerm || filterArea !== 'all') && (
                             <button
@@ -320,7 +308,7 @@ const Employees = () => {
                 <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 p-4 lg:p-6 italic">
                     <div className="flex justify-between items-center mb-4">
                         <h2 className="text-lg font-bold text-slate-800 dark:text-white">
-                            {isEditing ? 'Editar Empleado' : 'Agregar Nuevo Empleado'}
+                            {isEditing ? editButton : newButton}
                         </h2>
                         {isEditing && (
                             <button onClick={cancelEdit} className="text-slate-400 hover:text-red-500 flex items-center gap-1 text-xs font-bold uppercase transition-colors">
@@ -370,7 +358,7 @@ const Employees = () => {
                                 type="submit"
                                 className="bg-primary text-white px-8 py-3 rounded-xl text-sm font-bold hover:brightness-110 active:scale-95 transition-all shadow-lg w-full md:w-auto"
                             >
-                                {isEditing ? 'Actualizar Empleado' : 'Guardar Empleado'}
+                                {isEditing ? updateButton : saveButton}
                             </button>
                         </div>
                     </form>
@@ -380,7 +368,7 @@ const Employees = () => {
                     columns={columns}
                     data={filteredEmployees}
                     loading={loading}
-                    emptyMessage="No hay empleados registrados."
+                    emptyMessage={emptyMessage}
                 />
             </div>
         </Layout>

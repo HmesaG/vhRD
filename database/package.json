@@ -1,0 +1,11 @@
+{
+  "name": "visitflow-db-setup",
+  "type": "module",
+  "scripts": {
+    "setup": "node database/setup.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "pg": "^8.13.1"
+  }
+}

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db, collection, addDoc, onSnapshot, doc, deleteDoc, query, where, updateDoc } from '../firebase';
+import { reasonsApi } from '../services/api';
+import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { Trash2, ClipboardList, Settings2, Search, Edit2, X } from 'lucide-react';
@@ -14,22 +15,15 @@ const VisitReasons = () => {
     const [editingId, setEditingId] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
 
+    const fetchReasons = useCallback(() => reasonsApi.getAll(companyId), [companyId]);
+    const { data: fetchedReasons, refresh: refreshReasons } = usePolling(fetchReasons, 5000, [companyId]);
+
     useEffect(() => {
-        if (!companyId) return;
-
-        const q = query(
-            collection(db, 'reasons'),
-            where('companyId', '==', companyId)
-        );
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            data.sort((a, b) => a.label.localeCompare(b.label));
-            setReasons(data);
-            setLoading(false);
-        });
-        return () => unsubscribe();
-    }, [companyId]);
+        if (!fetchedReasons) return;
+        const sorted = [...fetchedReasons].sort((a, b) => a.label.localeCompare(b.label));
+        setReasons(sorted);
+        setLoading(false);
+    }, [fetchedReasons]);
 
     const toTitleCase = (str) => {
         return str.toLowerCase().replace(/(^|\s)\S/g, (L) => L.toUpperCase());
@@ -43,19 +37,13 @@ const VisitReasons = () => {
 
         try {
             if (isEditing) {
-                await updateDoc(doc(db, 'reasons', editingId), {
-                    label,
-                    requiresBadge: formData.requiresBadge
-                });
+                await reasonsApi.update(editingId, { label, requires_badge: formData.requiresBadge });
                 cancelEdit();
             } else {
-                await addDoc(collection(db, 'reasons'), {
-                    label,
-                    requiresBadge: formData.requiresBadge,
-                    companyId
-                });
+                await reasonsApi.create({ label, requires_badge: formData.requiresBadge, company_id: companyId });
                 setFormData({ label: '', requiresBadge: true });
             }
+            refreshReasons();
         } catch (err) { alert('Error: ' + err.message); }
     };
 
@@ -74,7 +62,7 @@ const VisitReasons = () => {
 
     const handleDelete = async (id) => {
         if (confirm('¿Eliminar este motivo?')) {
-            try { await deleteDoc(doc(db, 'reasons', id)); }
+            try { await reasonsApi.delete(id); refreshReasons(); }
             catch (err) { alert('Error: ' + err.message); }
         }
     };

@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db, collection, query, where, getDocs, onSnapshot } from '../firebase';
+import { visitsApi, areasApi, usersApi } from '../services/api';
+import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import { Shield, Search, Camera, User, Building, MapPin, CheckCircle2, XCircle, AlertTriangle, Scan } from 'lucide-react';
 import { Html5Qrcode } from 'html5-qrcode';
@@ -49,59 +50,59 @@ const SecurityPanel = () => {
     useEffect(() => {
         if (!user || role !== 'punto_de_control') return;
         const fetchUserData = async () => {
-            const userDoc = await getDocs(query(collection(db, 'users'), where('email', '==', user.email)));
-            if (!userDoc.empty) {
-                const data = userDoc.docs[0].data();
-                setUserAssignedAreas(data.assignedAreas || []);
-            }
+            try {
+                const allUsers = await usersApi.getAll();
+                const found = allUsers.find(u => u.email === user.email);
+                if (found) setUserAssignedAreas(found.assignedAreas || []);
+            } catch (err) { console.error('Error fetching user areas:', err); }
         };
         fetchUserData();
     }, [user, role]);
 
     // Fetch areas for mapping
+    const fetchAreas = useCallback(() => areasApi.getAll(companyId), [companyId]);
+    const { data: fetchedAreas } = usePolling(fetchAreas, 15000, [companyId]);
+
     useEffect(() => {
-        if (!companyId) return;
-        const q = query(collection(db, 'areas'), where('companyId', '==', companyId));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const areaMap = {};
-            snapshot.docs.forEach(doc => {
-                areaMap[doc.id] = doc.data();
-            });
-            setAreas(areaMap);
-        });
-        return () => unsubscribe();
-    }, [companyId]);
+        if (!fetchedAreas) return;
+        const areaMap = {};
+        fetchedAreas.forEach(a => { areaMap[a.id] = a; });
+        setAreas(areaMap);
+    }, [fetchedAreas]);
 
     const handleSearch = async (e) => {
         if (e) e.preventDefault();
-        if (!badgeInput.trim() || !companyId) return;
+        const input = badgeInput.trim();
+        if (!input || !companyId) return;
 
         setLoading(true);
         setError('');
         setScannedVisit(null);
 
         try {
-            // Fetch all active visits for this company and filter client-side to avoid index issues
-            const q = query(
-                collection(db, 'visits'),
-                where('companyId', '==', companyId)
-            );
+            const allVisits = await visitsApi.getAll(companyId);
 
-            const querySnapshot = await getDocs(q);
-            const allVisits = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
-            const activeVisit = allVisits.find(v =>
-                String(v.badge_number) === badgeInput.trim() &&
+            // Try to find by badge number first
+            let activeVisit = allVisits.find(v =>
+                String(v.badge_number) === input &&
                 v.status !== 'Salida' &&
                 !v.check_out
             );
 
+            // If not found by badge, try by visit ID (QR from ticket)
             if (!activeVisit) {
-                setError('No se encontró ninguna visita activa con este carnet (# ' + badgeInput + ').');
+                activeVisit = allVisits.find(v =>
+                    String(v.id) === input &&
+                    v.status !== 'Salida' &&
+                    !v.check_out
+                );
+            }
+
+            if (!activeVisit) {
+                setError('No se encontró ninguna visita activa con esta credencial: ' + input);
                 setScannedVisit(null);
             } else {
                 setScannedVisit(activeVisit);
-                // Si encontramos la visita, cerramos la cámara por comodidad
                 stopCamera();
             }
         } catch (err) {
@@ -173,21 +174,22 @@ const SecurityPanel = () => {
             setError('Error: ID de compañía no encontrado. Por favor reinicie sesión.');
             return;
         }
+        const input = code.trim();
         setLoading(true);
         setError('');
 
         try {
-            const q = query(collection(db, 'visits'), where('companyId', '==', companyId));
-            const querySnapshot = await getDocs(q);
-            const allVisits = querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+            const allVisits = await visitsApi.getAll(companyId);
 
+            // Try by badge number or visit ID
             const activeVisit = allVisits.find(v =>
-                Number(v.badge_number) === Number(code.trim()) ||
-                String(v.badge_number) === String(code.trim())
+                (String(v.badge_number) === input || String(v.id) === input) &&
+                v.status !== 'Salida' &&
+                !v.check_out
             );
 
             if (!activeVisit) {
-                setError('No se encontró visita activa para el carnet: ' + code);
+                setError('No se encontró visita activa para esta credencial: ' + input);
             } else {
                 setScannedVisit(activeVisit);
                 stopCamera();
@@ -420,7 +422,7 @@ const SecurityPanel = () => {
                                                         </div>
                                                     </div>
                                                     <div className="grid grid-cols-2 gap-4">
-                                                        <DataField label="Hora de Ingreso" value={scannedVisit.check_in?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })} />
+                                                        <DataField label="Hora de Ingreso" value={scannedVisit.check_in ? new Date(scannedVisit.check_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'} />
                                                         <DataField label="Carnet ID" value={`# ${scannedVisit.badge_number}`} />
                                                     </div>
                                                 </div>

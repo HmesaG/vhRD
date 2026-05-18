@@ -10,8 +10,8 @@ export default defineConfig({
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg', 'logo.png', 'apple-touch-icon.png', 'masked-icon.svg'],
       manifest: {
-        name: 'VisitFlow | Sistema de Gestión de Visitas',
-        short_name: 'VisitFlow',
+        name: 'Visitas Hub RD | Sistema de Gestión de Visitas',
+        short_name: 'Visitas Hub RD',
         description: 'Vanguardia en Seguridad y Gestión de Accesos - Grupo Mesa Vasquez',
         theme_color: '#f58220',
         background_color: '#0f172a',
@@ -41,10 +41,21 @@ export default defineConfig({
   server: {
     proxy: {
       '/api-dgii': {
-        target: 'https://wptsoftwares.giize.com:54443/WPTConsultasDGIApiLocal/wptconsultasdgii',
+        target: 'https://wptsoftwares.giize.com:54443',
         changeOrigin: true,
         secure: false,
-        rewrite: (path) => path.replace(/^\/api-dgii/, '')
+        rewrite: (path) => path.replace(/^\/api-dgii/, '/WPTConsultasDGIApiLocal/wptconsultasdgii')
+      },
+      '/api': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false
+      },
+      '/socket.io': {
+        target: 'http://localhost:3001',
+        changeOrigin: true,
+        secure: false,
+        ws: true
       }
     }
   }

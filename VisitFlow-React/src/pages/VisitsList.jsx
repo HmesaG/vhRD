@@ -1,12 +1,15 @@
-import React, { useState, useEffect } from 'react';
-import { db, collection, onSnapshot, query, doc, updateDoc, serverTimestamp, where } from '../firebase';
+import React, { useState, useEffect, useCallback } from 'react';
+import { visitsApi } from '../services/api';
+import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { LogOut, Mail, Send, Camera, Search, Filter, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useOrganizationLabels } from '../hooks/useOrganizationLabels';
 
 const VisitsList = () => {
     const { companyId } = useAuth();
+    const { hostSingular, singularLow, placeholderSearch } = useOrganizationLabels();
     const [visits, setVisits] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -19,10 +22,16 @@ const VisitsList = () => {
         return () => clearInterval(timer);
     }, []);
 
+    const parseDate = (val) => {
+        if (!val) return null;
+        if (val.toDate) return val.toDate();
+        return new Date(val);
+    };
+
     const formatDuration = (start, end) => {
         if (!start) return '--';
-        const startTime = start.toDate ? start.toDate() : start;
-        const endTime = end ? (end.toDate ? end.toDate() : end) : now;
+        const startTime = parseDate(start);
+        const endTime = end ? parseDate(end) : now;
         const diffMs = endTime - startTime;
         if (diffMs < 0) return '0m';
         const diffHrs = Math.floor(diffMs / 3600000);
@@ -31,39 +40,38 @@ const VisitsList = () => {
         return `${diffMins}m`;
     };
 
+    const fetchVisits = useCallback(() => visitsApi.getAll(companyId), [companyId]);
+    const { data: fetchedVisits, refresh: refreshVisits } = usePolling(fetchVisits, 5000, [companyId]);
+
     useEffect(() => {
-        if (!companyId) return;
-        const q = query(collection(db, 'visits'), where('companyId', '==', companyId));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            docs.sort((a, b) => {
-                const dateA = a.check_in?.toDate ? a.check_in.toDate() : new Date(0);
-                const dateB = b.check_in?.toDate ? b.check_in.toDate() : new Date(0);
-                return dateB - dateA;
-            });
-            setVisits(docs);
-            setLoading(false);
+        if (!fetchedVisits) return;
+        const docs = [...fetchedVisits].sort((a, b) => {
+            const dateA = parseDate(a.check_in) || new Date(0);
+            const dateB = parseDate(b.check_in) || new Date(0);
+            return dateB - dateA;
         });
-        return () => unsubscribe();
-    }, [companyId]);
+        setVisits(docs);
+        setLoading(false);
+    }, [fetchedVisits]);
 
     const handleCheckOut = async (id) => {
         if (confirm('¿Registrar salida de este visitante?')) {
             try {
-                await updateDoc(doc(db, 'visits', id), { check_out: serverTimestamp(), status: 'Salida' });
+                await visitsApi.update(id, { check_out: new Date().toISOString(), status: 'Salida' });
+                refreshVisits();
             } catch (err) { alert('Error: ' + err.message); }
         }
     };
 
     const handleEmail = (row) => {
-        if (!row.visitor_email) return alert('El empleado no tiene email registrado.');
+        if (!row.visitor_email) return alert(`El ${singularLow} no tiene email registrado.`);
         const subject = encodeURIComponent(`Aviso de Visita: ${row.full_name}`);
         const body = encodeURIComponent(`Hola ${row.employee},\n\nTe informamos que ${row.full_name} de la empresa ${row.company} se encuentra en recepción.\n\nSaludos,\nSistema de Visitas.`);
         window.location.href = `mailto:${row.visitor_email}?subject=${subject}&body=${body}`;
     };
 
     const handleWhatsApp = (row) => {
-        if (!row.visitor_phone) return alert('El empleado no tiene WhatsApp registrado.');
+        if (!row.visitor_phone) return alert(`El ${singularLow} no tiene WhatsApp registrado.`);
         const phone = row.visitor_phone.replace(/\D/g, '');
         const text = encodeURIComponent(`Hola, ${row.employee}. El visitante ${row.full_name} de ${row.company} ha llegado para verte.`);
         window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
@@ -73,7 +81,7 @@ const VisitsList = () => {
     const isInDateRange = (visit) => {
         if (filterDate === 'all') return true;
         if (!visit.check_in) return false;
-        const d = visit.check_in.toDate();
+        const d = parseDate(visit.check_in);
         const today = new Date();
         if (filterDate === 'today') {
             return d.toDateString() === today.toDateString();
@@ -135,7 +143,7 @@ const VisitsList = () => {
             )
         },
         {
-            header: 'Motivo / Empleado',
+            header: `Motivo / ${hostSingular}`,
             render: (row) => (
                 <div className="min-w-0">
                     <div className="flex items-center gap-1.5">
@@ -154,7 +162,7 @@ const VisitsList = () => {
             header: 'Fecha',
             render: (row) => (
                 <div className="text-xs font-medium text-slate-600 dark:text-slate-400 whitespace-nowrap">
-                    {row.check_in ? row.check_in.toDate().toLocaleDateString() : '--/--/----'}
+                    {row.check_in ? parseDate(row.check_in).toLocaleDateString() : '--/--/----'}
                 </div>
             )
         },
@@ -164,12 +172,12 @@ const VisitsList = () => {
                 <div className="space-y-1">
                     <p className="text-xs flex items-center gap-1.5 font-medium whitespace-nowrap">
                         <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0"></span>
-                        {row.check_in ? row.check_in.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
+                        {row.check_in ? parseDate(row.check_in).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : '--:--'}
                     </p>
                     {row.check_out && (
                         <p className="text-xs flex items-center gap-1.5 text-slate-400 whitespace-nowrap">
                             <span className="w-1.5 h-1.5 rounded-full bg-slate-300 shrink-0"></span>
-                            {row.check_out.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {parseDate(row.check_out).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                     )}
                 </div>
@@ -234,7 +242,7 @@ const VisitsList = () => {
                         </span>
                         <input
                             type="text"
-                            placeholder="Buscar por nombre, empresa, empleado o motivo..."
+                            placeholder={placeholderSearch}
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                             className="w-full pl-9 pr-4 py-2.5 bg-slate-50 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary shadow-inner"

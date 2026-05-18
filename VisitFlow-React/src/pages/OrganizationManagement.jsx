@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { db, collection, onSnapshot, query, doc, addDoc, updateDoc, deleteDoc, serverTimestamp } from '../firebase';
+import React, { useState, useEffect, useCallback } from 'react';
+import { organizationsApi } from '../services/api';
+import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { Building2, Plus, Edit2, Trash2, Globe, Phone, Loader2, Search } from 'lucide-react';
@@ -15,23 +16,22 @@ const OrganizationManagement = () => {
     const [formData, setFormData] = useState({
         name: '',
         rnc: '',
-        address: '',
+        address: 'oficina',
         phone: '',
         email: '',
         hasPuntoDeControl: true
     });
     const [searchingRnc, setSearchingRnc] = useState(false);
 
+    const fetchOrgs = useCallback(() => organizationsApi.getAll(), []);
+    const { data: fetchedOrgs, refresh: refreshOrgs } = usePolling(fetchOrgs, 10000);
+
     useEffect(() => {
-        const q = query(collection(db, 'organizations'));
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            data.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
-            setOrganizations(data);
-            setLoading(false);
-        });
-        return () => unsubscribe();
-    }, []);
+        if (!fetchedOrgs) return;
+        const sorted = [...fetchedOrgs].sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+        setOrganizations(sorted);
+        setLoading(false);
+    }, [fetchedOrgs]);
 
     const toTitleCase = (str) => {
         return str.toLowerCase().replace(/(^|\s)\S/g, (L) => L.toUpperCase());
@@ -93,15 +93,20 @@ const OrganizationManagement = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        const payload = {
+            ...formData,
+            nit: formData.rnc // Map rnc to nit for the backend
+        };
         try {
             if (editingOrg) {
-                await updateDoc(doc(db, 'organizations', editingOrg.id), formData);
+                await organizationsApi.update(editingOrg.id, payload);
             } else {
-                await addDoc(collection(db, 'organizations'), { ...formData, createdAt: serverTimestamp() });
+                await organizationsApi.create(payload);
             }
+            refreshOrgs();
             setIsModalOpen(false);
             setEditingOrg(null);
-            setFormData({ name: '', rnc: '', address: '', phone: '', email: '', hasPuntoDeControl: true });
+            setFormData({ name: '', rnc: '', address: 'oficina', phone: '', email: '', hasPuntoDeControl: true });
         } catch (error) { alert("Error: " + error.message); }
     };
 
@@ -121,8 +126,9 @@ const OrganizationManagement = () => {
                     </div>
                     <div>
                         <p className="text-sm font-bold text-slate-800 dark:text-white uppercase">{row.name}</p>
-                        <div className="flex gap-2 items-center">
+                        <div className="flex gap-2 items-center flex-wrap">
                             <p className="text-[10px] text-slate-400 font-medium tracking-wider font-mono">RNC: {row.rnc || 'S/N'}</p>
+                            <span className="text-[8px] bg-slate-100 dark:bg-slate-800 text-slate-500 font-bold px-1.5 py-0.5 rounded uppercase">{row.address || 'oficina'}</span>
                             {row.hasPuntoDeControl && (
                                 <span className="text-[8px] bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-bold px-1.5 py-0.5 rounded uppercase">Punto de Control</span>
                             )}
@@ -153,13 +159,13 @@ const OrganizationManagement = () => {
                         setEditingOrg(row); setFormData({
                             name: row.name || '',
                             rnc: row.rnc || row.nit || '', // Backward compatibility
-                            address: row.address || '',
+                            address: row.address || 'oficina',
                             phone: row.phone || '',
                             email: row.email || '',
                             hasPuntoDeControl: row.hasPuntoDeControl ?? true
                         }); setIsModalOpen(true);
                     }} className="p-2 text-slate-400 hover:text-primary transition-colors"><Edit2 size={16} /></button>
-                    <button onClick={async () => { if (confirm('¿Eliminar esta organización?')) await deleteDoc(doc(db, 'organizations', row.id)); }} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                    <button onClick={async () => { if (confirm('¿Eliminar esta organización?')) { await organizationsApi.delete(row.id); refreshOrgs(); } }} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
                 </div>
             )
         }
@@ -230,6 +236,19 @@ const OrganizationManagement = () => {
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Nombre Comercial</label>
                                     <input required type="text" className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-3 px-4 text-sm font-bold" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} />
+                                </div>
+
+                                <div className="space-y-1.5">
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Tipo de Organización</label>
+                                    <select
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-3 px-4 text-sm font-bold text-slate-800 dark:text-white focus:ring-2 focus:ring-primary shadow-sm"
+                                        value={formData.address}
+                                        onChange={e => setFormData({ ...formData, address: e.target.value })}
+                                    >
+                                        <option value="oficina">Oficina (Empleados / Anfitriones)</option>
+                                        <option value="torres">Torres (Inquilinos / Propietarios)</option>
+                                        <option value="residencial">Residencial (Inquilinos / Propietarios)</option>
+                                    </select>
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-4">

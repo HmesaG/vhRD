@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { db, collection, addDoc, onSnapshot, doc, deleteDoc, query, where, serverTimestamp, updateDoc } from '../firebase';
+import { badgesApi, visitsApi } from '../services/api';
+import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { Trash2, IdCard, Search, QrCode, Edit2, X, Download } from 'lucide-react';
@@ -19,62 +20,45 @@ const Badges = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [activeVisitsMap, setActiveVisitsMap] = useState({});
 
+    const fetchBadges = useCallback(() => badgesApi.getAll(companyId), [companyId]);
+    const { data: fetchedBadges, refresh: refreshBadges } = usePolling(fetchBadges, 5000, [companyId]);
+
+    const fetchVisits = useCallback(() => visitsApi.getAll(companyId), [companyId]);
+    const { data: fetchedVisits } = usePolling(fetchVisits, 5000, [companyId]);
+
     useEffect(() => {
-        if (!companyId) return;
+        if (!fetchedBadges) return;
+        const docs = [...fetchedBadges].sort((a, b) => a.number.localeCompare(b.number, undefined, { numeric: true, sensitivity: 'base' }));
+        setBadges(docs);
 
-        const q = query(
-            collection(db, 'badges'),
-            where('companyId', '==', companyId)
-        );
+        const currentPrefix = formData.prefix.toUpperCase().trim();
+        const filteredNumbers = docs
+            .filter(b => b.number.startsWith(currentPrefix))
+            .map(b => {
+                const numPart = b.number.replace(currentPrefix, '');
+                return parseInt(numPart);
+            })
+            .filter(n => !isNaN(n));
 
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const docs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        if (filteredNumbers.length > 0) {
+            const next = Math.max(...filteredNumbers) + 1;
+            setFormData(prev => ({ ...prev, startNumber: next.toString() }));
+        } else {
+            setFormData(prev => ({ ...prev, startNumber: '1' }));
+        }
+        setLoading(false);
+    }, [fetchedBadges]);
 
-            // Sort by number
-            docs.sort((a, b) => a.number.localeCompare(b.number, undefined, { numeric: true, sensitivity: 'base' }));
-
-            setBadges(docs);
-
-            // Auto-suggest next number for the current prefix
-            const currentPrefix = formData.prefix.toUpperCase().trim();
-            const filteredNumbers = docs
-                .filter(b => b.number.startsWith(currentPrefix))
-                .map(b => {
-                    const numPart = b.number.replace(currentPrefix, '');
-                    return parseInt(numPart);
-                })
-                .filter(n => !isNaN(n));
-
-            if (filteredNumbers.length > 0) {
-                const next = Math.max(...filteredNumbers) + 1;
-                setFormData(prev => ({ ...prev, startNumber: next.toString() }));
-            } else {
-                setFormData(prev => ({ ...prev, startNumber: '1' }));
+    useEffect(() => {
+        if (!fetchedVisits) return;
+        const map = {};
+        fetchedVisits.forEach(v => {
+            if (!v.check_out && v.badge_number) {
+                map[v.badge_number] = v.full_name;
             }
-            setLoading(false);
         });
-
-        // Track active visits to determine badge occupancy
-        const qVisits = query(
-            collection(db, 'visits'),
-            where('companyId', '==', companyId)
-        );
-        const unsubscribeVisits = onSnapshot(qVisits, (snapshot) => {
-            const map = {};
-            snapshot.docs.forEach(d => {
-                const data = d.data();
-                if (!data.check_out && data.badge_number) {
-                    map[data.badge_number] = data.full_name;
-                }
-            });
-            setActiveVisitsMap(map);
-        });
-
-        return () => {
-            unsubscribe();
-            unsubscribeVisits();
-        };
-    }, [formData.prefix, companyId]);
+        setActiveVisitsMap(map);
+    }, [fetchedVisits]);
 
     const handleAdd = async (e) => {
         e.preventDefault();
@@ -90,27 +74,27 @@ const Badges = () => {
         if (!companyId) { alert("Error de sesión: Sin organización asignada."); return; }
 
         try {
-            const batchPromises = [];
+            const promises = [];
             for (let i = 0; i < qty; i++) {
                 const numStr = (start + i).toString().padStart(3, '0');
                 const fullBadgeLabel = `${prefix}${numStr}`;
 
                 if (!badges.find(b => b.number === fullBadgeLabel)) {
-                    batchPromises.push(addDoc(collection(db, 'badges'), {
+                    promises.push(badgesApi.create({
                         number: fullBadgeLabel,
                         status: 'disponible',
-                        created_at: serverTimestamp(),
-                        companyId
+                        company_id: companyId
                     }));
                 }
             }
 
-            if (batchPromises.length === 0) {
+            if (promises.length === 0) {
                 alert('Los carnets con esta nomenclatura ya existen.');
                 return;
             }
 
-            await Promise.all(batchPromises);
+            await Promise.all(promises);
+            refreshBadges();
             setFormData(prev => ({ ...prev, quantity: 1 }));
         } catch (err) { alert('Error: ' + err.message); }
     };
@@ -119,7 +103,8 @@ const Badges = () => {
         e.preventDefault();
         if (!editNumber.trim()) return;
         try {
-            await updateDoc(doc(db, 'badges', editingId), { number: editNumber.toUpperCase().trim() });
+            await badgesApi.update(editingId, { number: editNumber.toUpperCase().trim() });
+            refreshBadges();
             setIsEditing(false);
             setEditingId(null);
             setEditNumber('');
@@ -150,7 +135,7 @@ const Badges = () => {
 
     const handleDelete = async (id) => {
         if (confirm('¿Eliminar este carnet permanentemente?')) {
-            try { await deleteDoc(doc(db, 'badges', id)); }
+            try { await badgesApi.delete(id); refreshBadges(); }
             catch (err) { alert('Error: ' + err.message); }
         }
     };

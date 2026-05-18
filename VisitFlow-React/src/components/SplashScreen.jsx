@@ -66,8 +66,8 @@ const SplashScreen = () => {
                         <span className="text-[8px] font-bold text-slate-400">React 19</span>
                     </div>
                     <div className="flex flex-col items-center gap-2">
-                        <Database size={16} className="text-orange-400" />
-                        <span className="text-[8px] font-bold text-slate-400">Firebase</span>
+                        <Database size={16} className="text-blue-300" />
+                        <span className="text-[8px] font-bold text-slate-400">PostgreSQL</span>
                     </div>
                     <div className="flex flex-col items-center gap-2">
                         <Zap size={16} className="text-cyan-400" />

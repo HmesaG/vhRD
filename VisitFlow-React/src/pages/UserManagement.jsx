@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { db, collection, onSnapshot, query, doc, setDoc, updateDoc, deleteDoc, getDocs, orderBy, where } from '../firebase';
+import React, { useState, useEffect, useCallback } from 'react';
+import { usersApi, organizationsApi, areasApi } from '../services/api';
+import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { UserPlus, Shield, Mail, Trash2, Key, Building, Edit2, X, CheckCircle2, Layers, Search } from 'lucide-react';
@@ -16,75 +17,57 @@ const UserManagement = () => {
     const [searchTerm, setSearchTerm] = useState('');
     const [formData, setFormData] = useState({ uid: '', email: '', role: 'recepcion', companyId: '', assignedAreas: [] });
 
+    const fetchUsers = useCallback(async () => {
+        const all = await usersApi.getAll();
+        if (currentUserRole === 'superadmin') return all;
+        return all.filter(u => u.companyId === currentUserCompanyId);
+    }, [currentUserRole, currentUserCompanyId]);
+    const { data: fetchedUsers, refresh: refreshUsers } = usePolling(fetchUsers, 5000, [currentUserRole, currentUserCompanyId]);
+
+    const fetchOrgs = useCallback(() => currentUserRole === 'superadmin' ? organizationsApi.getAll() : Promise.resolve([]), [currentUserRole]);
+    const { data: fetchedOrgs } = usePolling(fetchOrgs, 30000, [currentUserRole]);
+
+    const fetchAreas = useCallback(async () => {
+        const all = await areasApi.getAll();
+        if (currentUserRole === 'superadmin') return all;
+        return all.filter(a => a.companyId === currentUserCompanyId);
+    }, [currentUserRole, currentUserCompanyId]);
+    const { data: fetchedAreas } = usePolling(fetchAreas, 15000, [currentUserRole, currentUserCompanyId]);
+
     useEffect(() => {
-        if (!currentUserRole) return;
-
-        // Multi-tenancy: admins only see users of their own company. Superadmins see everyone.
-        let q;
-        if (currentUserRole === 'superadmin') {
-            q = query(collection(db, 'users'));
-        } else {
-            q = query(collection(db, 'users'), where('companyId', '==', currentUserCompanyId));
-        }
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            // Sort by email
-            data.sort((a, b) => (a.email || '').localeCompare(b.email || ''));
-            setUsers(data);
+        if (fetchedUsers) {
+            const sorted = [...fetchedUsers].sort((a, b) => (a.email || '').localeCompare(b.email || ''));
+            setUsers(sorted);
             setLoading(false);
-        });
-
-        // Only superadmins need the organization list for management
-        if (currentUserRole === 'superadmin') {
-            const qOrg = query(collection(db, 'organizations'), orderBy('name'));
-            onSnapshot(qOrg, (snapshot) => {
-                setOrganizations(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-            });
         }
-
-        return () => unsubscribe();
-    }, [currentUserRole, currentUserCompanyId]);
+    }, [fetchedUsers]);
 
     useEffect(() => {
-        if (!currentUserRole) return;
+        if (fetchedOrgs) setOrganizations(fetchedOrgs);
+    }, [fetchedOrgs]);
 
-        let q;
-        if (currentUserRole === 'superadmin') {
-            q = query(collection(db, 'areas'));
-        } else {
-            q = query(collection(db, 'areas'), where('companyId', '==', currentUserCompanyId));
-        }
-
-        const unsubscribe = onSnapshot(q, (snapshot) => {
-            const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            setAvailableAreas(data);
-        });
-
-        return () => unsubscribe();
-    }, [currentUserRole, currentUserCompanyId]);
+    useEffect(() => {
+        if (fetchedAreas) setAvailableAreas(fetchedAreas);
+    }, [fetchedAreas]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         try {
-            // If admin, force the user into the same company
             const finalCompanyId = currentUserRole === 'superadmin' ? formData.companyId : currentUserCompanyId;
 
             const userData = {
                 email: formData.email,
                 role: formData.role,
                 companyId: finalCompanyId,
-                updatedAt: new Date()
+                assignedAreas: formData.role === 'punto_de_control' ? (formData.assignedAreas || []) : []
             };
 
-            // Only save assignedAreas if role is punto_de_control
-            if (formData.role === 'punto_de_control') {
-                userData.assignedAreas = formData.assignedAreas || [];
+            if (editingUser) {
+                await usersApi.update(formData.uid, userData);
             } else {
-                userData.assignedAreas = []; // Clear if role changed
+                await usersApi.create({ ...userData, uid: formData.uid });
             }
-
-            await setDoc(doc(db, 'users', formData.uid), userData);
+            refreshUsers();
             setIsModalOpen(false);
             setEditingUser(null);
             setFormData({ uid: '', email: '', role: 'recepcion', companyId: currentUserRole === 'superadmin' ? '' : currentUserCompanyId, assignedAreas: [] });
@@ -179,7 +162,7 @@ const UserManagement = () => {
                         });
                         setIsModalOpen(true);
                     }} className="p-2 text-slate-400 hover:text-primary transition-colors"><Edit2 size={16} /></button>
-                    <button onClick={async () => { if (confirm('¿Eliminar permisos?')) await deleteDoc(doc(db, 'users', row.id)); }} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                    <button onClick={async () => { if (confirm('¿Eliminar permisos?')) { await usersApi.delete(row.id); refreshUsers(); } }} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
                 </div>
             )
         }
@@ -228,7 +211,7 @@ const UserManagement = () => {
                                     <input required type="email" className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-3 px-4 text-sm" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">UID (ID de Firebase Auth)</label>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">ID de Usuario</label>
                                     <input required disabled={!!editingUser} type="text" className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-3 px-4 text-sm font-mono text-[11px]" placeholder="ID largo de 28 caracteres..." value={formData.uid} onChange={e => setFormData({ ...formData, uid: e.target.value })} />
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

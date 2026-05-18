@@ -15,7 +15,7 @@ function TestPage() {
                 <h1 style={{ fontSize: '3rem', marginBottom: '1rem' }}>✅ React Funciona</h1>
                 <p style={{ fontSize: '1.5rem', color: '#94a3b8' }}>VisitFlow está cargando correctamente</p>
                 <p style={{ marginTop: '2rem', fontSize: '1rem', color: '#64748b' }}>
-                    Si ves este mensaje, el problema está en el AuthContext o Firebase
+                    Si ves este mensaje, el problema está en el AuthContext o la API
                 </p>
             </div>
         </div>

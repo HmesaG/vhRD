@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { auth, signOut } from '../firebase';
-import { LogOut, Sun, Moon, Bell, Menu, Plus, MessageCircle, X, Send, Building2, Users } from 'lucide-react';
+import { LogOut, Sun, Moon, Bell, Menu, Plus, MessageCircle, X, Send, Building2, Users, User } from 'lucide-react';
 import VisitModal from './VisitModal';
+import { useOrganizationLabels } from '../hooks/useOrganizationLabels';
 
 const SidebarContent = ({ companyData, role, location, handleLogout, user }) => {
+    const { sidebarLabel } = useOrganizationLabels();
     const menuSections = [
         {
             title: 'OPERACIONES',
@@ -19,7 +20,7 @@ const SidebarContent = ({ companyData, role, location, handleLogout, user }) => 
         {
             title: 'CATÁLOGOS',
             items: [
-                { name: 'Empleados', path: '/empleados', icon: 'person_search', roles: ['administrador'] },
+                { name: sidebarLabel, path: '/empleados', icon: 'person_search', roles: ['administrador'] },
                 { name: 'Empresas', path: '/empresas', icon: 'business', roles: ['administrador'] },
                 { name: 'Carnets', path: '/carnets', icon: 'badge', roles: ['administrador'] },
             ]
@@ -59,7 +60,7 @@ const SidebarContent = ({ companyData, role, location, handleLogout, user }) => 
                         />
                     </div>
                     <div className="overflow-hidden">
-                        <span className="text-xl font-bold tracking-tight uppercase block leading-none truncate">VisitFlow</span>
+                        <span className="text-xl font-bold tracking-tight uppercase block leading-none truncate">Visitas Hub RD</span>
                         <span className="text-[9px] font-bold text-slate-500 uppercase tracking-widest truncate block">{companyData?.name || 'Multi-Project'}</span>
                     </div>
                 </div>
@@ -121,7 +122,7 @@ const SidebarContent = ({ companyData, role, location, handleLogout, user }) => 
 };
 
 const Layout = ({ children, title }) => {
-    const { user, role, companyData } = useAuth();
+    const { user, role, companyData, logout } = useAuth();
     const [isDarkMode, setIsDarkMode] = useState(
         localStorage.getItem('darkMode') === 'true' ||
         (!('darkMode' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)
@@ -132,7 +133,7 @@ const Layout = ({ children, title }) => {
     const [isSupportModalOpen, setIsSupportModalOpen] = useState(false);
     const [supportMessage, setSupportMessage] = useState('');
 
-    const handleLogout = () => signOut(auth);
+    const handleLogout = () => logout();
 
     useEffect(() => {
         if (isDarkMode) document.documentElement.classList.add('dark');
