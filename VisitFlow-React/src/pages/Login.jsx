@@ -92,8 +92,8 @@ const Login = () => {
             <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,130,32,0.15),transparent_70%)] pointer-events-none" />
 
             {/* Login Form Container */}
-            <div className="w-full max-w-md relative z-10 flex-shrink-0 flex flex-col pt-12 pb-20 sm:py-24">
-                <div className="text-center mb-10 group">
+            <div className="w-full max-w-md relative z-10 flex-grow flex flex-col justify-center pt-8 pb-12 sm:py-16">
+                <div className="text-center mb-8 sm:mb-10 group">
                     <div className="w-32 h-32 sm:w-48 sm:h-48 mx-auto mb-8 sm:mb-10 transform group-hover:scale-105 transition-all duration-700">
                         <img
                             src="/logo.png"
@@ -106,7 +106,7 @@ const Login = () => {
                     <p className="text-slate-500 text-[10px] sm:text-[11px] font-black text-center uppercase tracking-[0.3em]">Access Control System</p>
                 </div>
 
-                <div className="bg-slate-900/50 backdrop-blur-xl p-8 rounded-3xl border border-slate-800 shadow-2xl">
+                <div className="bg-slate-900/50 backdrop-blur-xl p-6 sm:p-8 rounded-[2rem] border border-slate-800 shadow-2xl">
                     <div className="flex items-center gap-3 mb-6">
                         {isResetMode && (
                             <button
@@ -227,8 +227,8 @@ const Login = () => {
             </div>
 
             {/* Footer */}
-            <div className="w-full max-w-6xl mx-auto relative z-10 pt-16 pb-12 mt-12 border-t border-slate-900/50">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-12 text-left px-6 sm:px-8">
+            <div className="w-full max-w-6xl mx-auto relative z-10 pt-12 sm:pt-16 pb-8 sm:pb-12 mt-8 sm:mt-12 border-t border-slate-900/50">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-12 text-left px-4 sm:px-8">
                     <div className="space-y-6">
                         <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.25em]">Propiedad Intelectual</h3>
                         <div className="space-y-4">
@@ -281,7 +281,7 @@ const Login = () => {
                     </div>
                 </div>
 
-                <div className="mt-20 pt-10 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-8 px-6 sm:px-8">
+                <div className="mt-12 sm:mt-20 pt-8 sm:pt-10 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-8 px-4 sm:px-8">
                     <div className="flex items-center gap-8 sm:gap-10">
                         <a href="#" className="text-slate-600 hover:text-primary transition-all hover:scale-125 duration-300">
                             <Instagram size={20} />
@@ -303,23 +303,23 @@ const Login = () => {
             {/* Floating button for Request Service */}
             <button
                 onClick={() => setIsRequestModalOpen(true)}
-                className="fixed bottom-8 right-8 w-16 h-16 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all z-[99] group border-4 border-slate-950"
+                className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 w-14 h-14 sm:w-16 sm:h-16 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl hover:scale-110 active:scale-95 transition-all z-[99] group border-4 border-slate-950"
             >
                 <div className="absolute inset-0 rounded-full animate-ping bg-primary opacity-20 pointer-events-none" />
-                <Send size={28} className="relative z-10 group-hover:rotate-12 transition-transform" />
+                <Send size={24} className="sm:w-7 sm:h-7 relative z-10 group-hover:rotate-12 transition-transform" />
             </button>
 
             {/* Request Service Modal */}
             {isRequestModalOpen && (
                 <div className="fixed inset-0 z-[999] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md">
-                    <div className="bg-slate-900 w-full max-w-sm rounded-[2rem] border border-slate-800 shadow-2xl p-8 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-8 opacity-5 group-hover:opacity-10 transition-opacity rotate-12">
+                    <div className="bg-slate-900 w-full max-w-sm rounded-[2rem] border border-slate-800 shadow-2xl p-6 sm:p-8 relative overflow-hidden group">
+                        <div className="absolute top-0 right-0 p-6 sm:p-8 opacity-5 group-hover:opacity-10 transition-opacity rotate-12">
                             <Send size={120} className="text-primary" />
                         </div>
 
                         <button
                             onClick={() => setIsRequestModalOpen(false)}
-                            className="absolute top-6 right-6 p-2 text-slate-500 hover:text-white transition-colors z-20"
+                            className="absolute top-4 right-4 sm:top-6 sm:right-6 p-2 text-slate-500 hover:text-white transition-colors z-20"
                         >
                             <X size={20} />
                         </button>

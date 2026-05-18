@@ -256,10 +256,10 @@ const VisitModal = ({ isOpen, onClose }) => {
 
                 <div className="p-4 lg:p-5 overflow-y-auto custom-scrollbar">
                     <div className="flex flex-col lg:flex-row gap-5 items-start">
-                        <form onSubmit={handleSubmit} className={`flex-grow grid grid-cols-1 md:grid-cols-3 gap-4 transition-all duration-300 ${isCameraActive ? 'lg:max-w-[65%]' : 'w-full'}`}>
+                        <form onSubmit={handleSubmit} className={`flex flex-col gap-4 transition-all duration-300 ${isCameraActive ? 'lg:w-[65%]' : 'w-full'}`}>
                         
                         {/* 1. Identity Section */}
-                        <div className="md:col-span-3 bg-white dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-md space-y-4 transition-all hover:border-primary/20">
+                        <div className="bg-white dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-md space-y-4 transition-all hover:border-primary/20">
                             <div className="flex items-center justify-between">
                                 <div className="flex items-center gap-2">
                                     <div className="p-2 bg-blue-500/10 rounded-xl text-blue-500 ring-2 ring-blue-500/5"><Fingerprint size={16} /></div>
@@ -275,8 +275,8 @@ const VisitModal = ({ isOpen, onClose }) => {
                                 )}
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                                <div className="md:col-span-2 space-y-1.5">
+                            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                                <div className="lg:col-span-2 space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Documento de Identidad</label>
                                     <div className="flex gap-2">
                                         <div className="relative flex-grow">
@@ -314,7 +314,7 @@ const VisitModal = ({ isOpen, onClose }) => {
                                     </div>
                                 </div>
 
-                                <div className="md:col-span-3 space-y-1.5">
+                                <div className="lg:col-span-3 space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre Completo</label>
                                     <div className="relative">
                                         <User size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -332,7 +332,7 @@ const VisitModal = ({ isOpen, onClose }) => {
                         </div>
 
                         {/* 2. Company Section */}
-                        <div className="md:col-span-3 bg-white dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-md space-y-4 transition-all hover:border-primary/20">
+                        <div className="bg-white dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-md space-y-4 transition-all hover:border-primary/20">
                             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                                 <div className="flex items-center gap-2">
                                     <div className="p-2 bg-amber-500/10 rounded-xl text-amber-500 ring-2 ring-amber-500/5"><Building2 size={16} /></div>
@@ -368,8 +368,8 @@ const VisitModal = ({ isOpen, onClose }) => {
                                 </label>
                             </div>
 
-                            <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
-                                <div className="md:col-span-2 space-y-1.5">
+                            <div className="grid grid-cols-1 lg:grid-cols-5 gap-4">
+                                <div className="lg:col-span-2 space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">RNC (Registro Nacional)</label>
                                     <div className="relative group">
                                         <input
@@ -396,7 +396,7 @@ const VisitModal = ({ isOpen, onClose }) => {
                                     </div>
                                 </div>
 
-                                <div className="md:col-span-3 space-y-1.5">
+                                <div className="lg:col-span-3 space-y-1.5">
                                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Nombre / Razón Social</label>
                                     <div className="relative">
                                         <Building2 size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
@@ -423,7 +423,7 @@ const VisitModal = ({ isOpen, onClose }) => {
                         </div>
 
                         {/* 3. Bottom Row: Details, Access, Destination inside subgrid to prevent squishing */}
-                        <div className={`md:col-span-3 grid grid-cols-1 gap-4 ${isCameraActive ? 'sm:grid-cols-2 lg:grid-cols-3' : 'sm:grid-cols-3'}`}>
+                        <div className={`grid grid-cols-1 gap-4 ${isCameraActive ? 'sm:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3' : 'sm:grid-cols-2 md:grid-cols-3'}`}>
                             
                             {/* Details Card */}
                             <div className="bg-white dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-md space-y-3">
@@ -517,7 +517,7 @@ const VisitModal = ({ isOpen, onClose }) => {
                         </div>
 
                         {/* Submit Button */}
-                        <div className="md:col-span-3 pt-2">
+                        <div className="pt-2">
                             <button
                                 type="submit"
                                 className="w-full py-3.5 bg-primary text-white rounded-xl text-xs font-black uppercase tracking-[0.2em] shadow-lg shadow-primary/20 hover:brightness-110 active:scale-[0.99] transition-all flex items-center justify-center gap-2"
