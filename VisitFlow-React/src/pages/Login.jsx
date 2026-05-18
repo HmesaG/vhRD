@@ -88,13 +88,51 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen bg-slate-950 flex flex-col items-center p-4 sm:p-6 relative overflow-x-hidden">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,130,32,0.15),transparent_70%)] pointer-events-none" />
+        <div className="min-h-screen bg-slate-950 flex flex-col lg:flex-row relative overflow-hidden">
+            {/* Background Gradient for Mobile/Tablet */}
+            <div className="absolute lg:hidden inset-0 bg-[radial-gradient(circle_at_50%_0%,rgba(245,130,32,0.15),transparent_70%)] pointer-events-none" />
 
-            {/* Login Form Container */}
-            <div className="w-full max-w-md relative z-10 flex-grow flex flex-col justify-center pt-8 pb-12 sm:py-16">
-                <div className="text-center mb-8 sm:mb-10 group">
-                    <div className="w-32 h-32 sm:w-48 sm:h-48 mx-auto mb-8 sm:mb-10 transform group-hover:scale-105 transition-all duration-700">
+            {/* Left Side: Branding (Desktop Only) */}
+            <div className="hidden lg:flex lg:w-[45%] xl:w-1/2 bg-slate-900 relative flex-col items-center justify-center border-r border-slate-800/60 p-12 overflow-hidden">
+                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(245,130,32,0.15),transparent_60%)] pointer-events-none" />
+                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')] opacity-5 mix-blend-overlay pointer-events-none"></div>
+                
+                <div className="relative z-10 text-center flex flex-col items-center">
+                    <div className="w-48 h-48 xl:w-56 xl:h-56 mb-12 transform hover:scale-105 hover:-translate-y-2 transition-all duration-500 ease-out">
+                        <img
+                            src="/logo.png"
+                            alt="Visitas Hub RD Logo"
+                            className="w-full h-full object-contain filter drop-shadow-[0_0_40px_rgba(245,130,32,0.4)]"
+                        />
+                    </div>
+                    <h1 className="text-4xl xl:text-5xl font-black text-white tracking-tighter mb-4 italic">
+                        Visitas Hub RD
+                    </h1>
+                    <div className="h-1.5 w-16 bg-primary rounded-full mb-6 shadow-[0_0_15px_rgba(245,130,32,0.5)]" />
+                    <p className="text-slate-400 text-xs xl:text-sm font-black uppercase tracking-[0.4em]">
+                        Access Control System
+                    </p>
+                </div>
+                
+                {/* Decorative Elements */}
+                <div className="absolute bottom-12 left-12 right-12 flex items-center justify-between text-slate-600">
+                    <div className="flex items-center gap-3">
+                        <div className="w-2 h-2 rounded-full bg-primary/60 animate-pulse" />
+                        <span className="text-[10px] font-bold uppercase tracking-widest">Sistema Activo</span>
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-widest">v2.0 Enterprise</span>
+                </div>
+            </div>
+
+            {/* Right Side: Login Form & Footer Container */}
+            <div className="w-full lg:w-[55%] xl:w-1/2 h-screen overflow-y-auto flex flex-col relative custom-scrollbar">
+                
+                {/* Login Form Container */}
+                <div className="flex-grow flex flex-col justify-center items-center p-4 sm:p-8 lg:p-12 w-full max-w-2xl mx-auto pt-10 sm:pt-16 lg:pt-0">
+                    
+                    {/* Mobile/Tablet Branding (Hidden on Desktop) */}
+                    <div className="text-center mb-8 sm:mb-10 lg:hidden group w-full">
+                        <div className="w-32 h-32 sm:w-40 sm:h-40 mx-auto mb-8 transform group-hover:scale-105 transition-all duration-700">
                         <img
                             src="/logo.png"
                             alt="Visitas Hub RD Logo"
@@ -106,8 +144,8 @@ const Login = () => {
                     <p className="text-slate-500 text-[10px] sm:text-[11px] font-black text-center uppercase tracking-[0.3em]">Access Control System</p>
                 </div>
 
-                <div className="bg-slate-900/50 backdrop-blur-xl p-6 sm:p-8 rounded-[2rem] border border-slate-800 shadow-2xl">
-                    <div className="flex items-center gap-3 mb-6">
+                    <div className="bg-slate-900/60 backdrop-blur-xl p-6 sm:p-8 lg:p-10 rounded-[2rem] border border-slate-800/80 shadow-2xl w-full max-w-md relative z-10">
+                        <div className="flex items-center gap-3 mb-8">
                         {isResetMode && (
                             <button
                                 onClick={() => {
@@ -224,78 +262,57 @@ const Login = () => {
                         </button>
                     </form>
                 </div>
-            </div>
+                    </div>
 
-            {/* Footer */}
-            <div className="w-full max-w-6xl mx-auto relative z-10 pt-12 sm:pt-16 pb-8 sm:pb-12 mt-8 sm:mt-12 border-t border-slate-900/50">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 sm:gap-12 text-left px-4 sm:px-8">
-                    <div className="space-y-6">
-                        <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.25em]">Propiedad Intelectual</h3>
-                        <div className="space-y-4">
-                            <p className="text-white text-lg sm:text-base font-black tracking-tight leading-none italic">
-                                GRUPO MESA<br /><span className="text-primary">VASQUEZ (GMV)</span>
-                            </p>
-                            <div className="space-y-2">
-                                <p className="text-slate-400 text-[11px] font-black uppercase tracking-[0.1em]">© 2026 VISITAS HUB RD</p>
-                                <p className="text-slate-600 text-[10px] sm:text-[9px] font-bold uppercase tracking-[0.15em] leading-relaxed">
-                                    SISTEMAS DE CONTROL DE ACCESO<br />TODOS LOS DERECHOS RESERVADOS
-                                </p>
+                    {/* Footer Inside Right Pane */}
+                    <div className="w-full max-w-md lg:max-w-xl mx-auto mt-12 sm:mt-16 lg:mt-20 pt-8 border-t border-slate-900/50 pb-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 text-left">
+                            <div className="space-y-4">
+                                <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.25em]">Propiedad Intelectual</h3>
+                                <div className="space-y-2">
+                                    <p className="text-white text-sm sm:text-base font-black tracking-tight leading-none italic">
+                                        GRUPO MESA<br /><span className="text-primary">VASQUEZ (GMV)</span>
+                                    </p>
+                                    <p className="text-slate-400 text-[10px] font-black uppercase tracking-[0.1em] pt-2">© 2026 VISITAS HUB RD</p>
+                                </div>
+                            </div>
+
+                            <div className="space-y-4">
+                                <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.25em]">Contacto y Soporte</h3>
+                                <div className="space-y-3">
+                                    <a href="tel:8097649811" className="flex items-center gap-3 text-slate-400 hover:text-white transition-all duration-300 group">
+                                        <Phone size={14} className="text-primary/60 group-hover:text-primary" />
+                                        <span className="text-[11px] font-black tracking-tight">809.764.9811</span>
+                                    </a>
+                                    <a href="https://www.grupomvrd.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 text-slate-400 hover:text-white transition-all duration-300 group">
+                                        <Globe size={14} className="text-primary/60 group-hover:text-primary" />
+                                        <span className="text-[11px] font-black uppercase tracking-tight">www.grupomvrd.com</span>
+                                    </a>
+                                    <a href="mailto:grupomv.rd@outlook.com" className="flex items-center gap-3 text-slate-400 hover:text-white transition-all duration-300 group">
+                                        <Mail size={14} className="text-primary/60 group-hover:text-primary" />
+                                        <span className="text-[11px] font-black tracking-tight">grupomv.rd@outlook.com</span>
+                                    </a>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <div className="space-y-6">
-                        <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.25em]">Redes Oficiales</h3>
-                        <div className="space-y-4">
-                            <a href="tel:8097649811" className="flex items-center gap-4 text-slate-400 hover:text-white transition-all duration-300 group">
-                                <div className="flex items-center justify-center w-10 h-10 bg-slate-900 rounded-xl group-hover:bg-primary/20 border border-white/[0.02] group-hover:border-primary/30 transition-all">
-                                    <Phone size={16} className="text-primary/60 group-hover:text-primary" />
-                                </div>
-                                <span className="text-xs font-black tracking-tight">809.764.9811</span>
-                            </a>
-                            <a href="https://www.grupomvrd.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-4 text-slate-400 hover:text-white transition-all duration-300 group">
-                                <div className="flex items-center justify-center w-10 h-10 bg-slate-900 rounded-xl group-hover:bg-primary/20 border border-white/[0.02] group-hover:border-primary/30 transition-all">
-                                    <Globe size={16} className="text-primary/60 group-hover:text-primary" />
-                                </div>
-                                <span className="text-xs font-black uppercase tracking-tight">www.grupomvrd.com</span>
-                            </a>
+                        <div className="mt-8 pt-6 border-t border-slate-900/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+                            <div className="flex items-center gap-6">
+                                <a href="#" className="text-slate-600 hover:text-primary transition-all hover:scale-125 duration-300">
+                                    <Instagram size={18} />
+                                </a>
+                                <a href="#" className="text-slate-600 hover:text-blue-500 transition-all hover:scale-125 duration-300">
+                                    <Facebook size={18} />
+                                </a>
+                                <a href="https://www.linkedin.com/company/grupo-mesa-vasquez/" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-blue-400 transition-all hover:scale-125 duration-300">
+                                    <Linkedin size={18} />
+                                </a>
+                            </div>
+                            <div className="flex items-center gap-3 lg:hidden">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse" />
+                                <span className="text-[9px] font-black text-slate-700 uppercase tracking-widest">v2.0</span>
+                            </div>
                         </div>
-                    </div>
-
-                    <div className="space-y-6">
-                        <h3 className="text-slate-500 text-[10px] font-black uppercase tracking-[0.25em]">Servicios y Soporte</h3>
-                        <div className="space-y-4">
-                            <a
-                                href="mailto:grupomv.rd@outlook.com?subject=[SOLICITUD%20DE%20SERVICIOS]%20-%20Visitas%20Hub%20RD&body=Estimado%20Equipo%20de%20Grupo%20Mesa%20Vasquez%20(GMV)%2C%0A%0AEspero%20que%20se%20encuentren%20bien.%0A%0AA%20trav%C3%A9s%20del%20presente%2C%20deseo%20solicitar%20informaci%C3%B3n%20detallada%20sobre%20los%20servicios%20y%20soluciones%20tecnol%C3%B3gicas%20que%20ofrecen%20para%20optimizar%20nuestros%20procesos%20de%20seguridad%20y%20gesti%C3%B3n%20de%20accesos.%0A%0APor%20favor%2C%20incluyan%20informaci%C3%B3n%20sobre%3A%0A-%20Implementaci%C3%B3n%20de%20Visitas%20Hub%20RD%0A-%20Sistemas%20de%20Control%20de%20Flotas%0A-%20Consultor%C3%ADa%20en%20Seguridad%20Digital%0A%0AMis%20datos%20de%20contacto%3A%0A-%20Nombre%3A%0A-%20Empresa%3A%0A-%20Tel%C3%A9fono%3A%0A%0AQuedo%20a%20la%20espera%20de%20su%20respuesta.%0A%0AAtentamente%2C%0A%5BNombre%5D"
-                                className="flex items-center gap-3 text-slate-400 hover:text-white transition-all duration-300"
-                            >
-                                <span className="text-xs font-black tracking-tight">grupomv.rd@outlook.com</span>
-                            </a>
-                            <a
-                                href="mailto:grupomv.rd@gmail.com?subject=[SOLICITUD%20DE%20SERVICIOS]%20-%20Visitas%20Hub%20RD&body=Estimado%20Equipo%20de%20Grupo%20Mesa%20Vasquez%20(GMV)%2C%0A%0AEspero%20que%20se%20encuentren%20bien.%0A%0AA%20trav%C3%A9s%20del%20presente%2C%20deseo%20solicitar%20informaci%C3%B3n%20detallada%20sobre%20los%20servicios%20y%20soluciones%20tecnol%C3%B3gicas%20que%20ofrecen%20para%20optimizar%20nuestros%20procesos%20de%20seguridad%20y%20gesti%C3%B3n%20de%20accesos.%0A%0APor%20favor%2C%20incluyan%20informaci%C3%B3n%20sobre%3A%0A-%20Implementaci%C3%B3n%20de%20Visitas%20Hub%20RD%0A-%20Sistemas%20de%20Control%20de%20Flotas%0A-%20Consultor%C3%ADa%20en%20Seguridad%20Digital%0A%0AMis%20datos%20de%20contacto%3A%0A-%20Nombre%3A%0A-%20Empresa%3A%0A-%20Tel%C3%A9fono%3A%0A%0AQuedo%20a%20la%20espera%20de%20su%20respuesta.%0A%0AAtentamente%2C%0A%5BNombre%5D"
-                                className="flex items-center gap-3 text-slate-400 hover:text-white transition-all duration-300"
-                            >
-                                <span className="text-xs font-black tracking-tight">grupomv.rd@gmail.com</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="mt-12 sm:mt-20 pt-8 sm:pt-10 border-t border-slate-900 flex flex-col sm:flex-row items-center justify-between gap-6 sm:gap-8 px-4 sm:px-8">
-                    <div className="flex items-center gap-8 sm:gap-10">
-                        <a href="#" className="text-slate-600 hover:text-primary transition-all hover:scale-125 duration-300">
-                            <Instagram size={20} />
-                        </a>
-                        <a href="#" className="text-slate-600 hover:text-blue-500 transition-all hover:scale-125 duration-300">
-                            <Facebook size={20} />
-                        </a>
-                        <a href="https://www.linkedin.com/company/grupo-mesa-vasquez/" target="_blank" rel="noopener noreferrer" className="text-slate-600 hover:text-blue-400 transition-all hover:scale-125 duration-300">
-                            <Linkedin size={20} />
-                        </a>
-                    </div>
-                    <div className="flex items-center gap-4">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary/40 animate-pulse" />
-                        <span className="text-[9px] sm:text-[10px] font-black text-slate-700 uppercase tracking-widest sm:tracking-[0.3em] text-center">Visits Management System v2.0</span>
                     </div>
                 </div>
             </div>
