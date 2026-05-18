@@ -255,8 +255,8 @@ const VisitModal = ({ isOpen, onClose }) => {
                 </div>
 
                 <div className="p-4 lg:p-5 overflow-y-auto custom-scrollbar">
-                    <div className="flex flex-col lg:flex-row gap-5 items-start">
-                        <form onSubmit={handleSubmit} className={`flex flex-col gap-4 transition-all duration-300 ${isCameraActive ? 'lg:w-[65%]' : 'w-full'}`}>
+                    <div className="flex flex-col md:flex-row gap-5 items-start">
+                        <form onSubmit={handleSubmit} className={`flex flex-col gap-4 transition-all duration-300 ${isCameraActive ? 'md:w-[55%] lg:w-[65%]' : 'w-full'}`}>
                         
                         {/* 1. Identity Section */}
                         <div className="bg-white dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800/80 shadow-md space-y-4 transition-all hover:border-primary/20">
@@ -529,7 +529,7 @@ const VisitModal = ({ isOpen, onClose }) => {
                     </form>
 
                     {isCameraActive && (
-                        <div className="w-full lg:w-[35%] flex flex-col items-center justify-start bg-slate-100 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3.5 animate-in slide-in-from-right duration-300 shrink-0 lg:sticky lg:top-0">
+                        <div className="w-full md:w-[45%] lg:w-[35%] flex flex-col items-center justify-start bg-slate-100 dark:bg-slate-900/40 p-4 rounded-2xl border border-slate-200 dark:border-slate-800 space-y-3.5 animate-in slide-in-from-right duration-300 shrink-0 md:sticky md:top-0">
                             <div className="flex justify-between items-center w-full">
                                 <div className="flex items-center gap-2">
                                     <div className="p-1.5 bg-primary/10 rounded-lg text-primary"><Camera size={15} /></div>
@@ -544,7 +544,7 @@ const VisitModal = ({ isOpen, onClose }) => {
                                 </button>
                             </div>
                             
-                            <div className="relative w-full aspect-video bg-black rounded-xl overflow-hidden shadow-inner border border-slate-800">
+                            <div className="relative w-full min-h-[250px] shrink-0 aspect-square lg:aspect-video bg-black rounded-xl overflow-hidden shadow-inner border border-slate-800">
                                 <div id="modal-reader" className="w-full h-full" />
                                 <div className="absolute inset-0 pointer-events-none border-[12px] border-slate-950/60">
                                     <div className="w-full h-full border border-primary/50 relative">
