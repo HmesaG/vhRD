@@ -120,7 +120,17 @@ El frontend de React se sirve estáticamente con Nginx en el puerto 80, pero req
 En Dokploy, el wildcard por defecto suele ser `.traefik.me`. Sin embargo, algunos proveedores de internet (especialmente en República Dominicana, como Claro o Altice) bloquean este servicio DNS o este falla constantemente a nivel global.
 * **Solución**: Cambia inmediatamente el wildcard a **`.sslip.io`** (ej. `tu-app.IP.sslip.io`) en la configuración general de Dokploy, o utiliza un dominio propio configurando los registros A en Cloudflare o tu registrador de dominios favorito.
 
-### 2. ⚠️ Peticiones fallidas al Backend (CORS)
+### 2. ⚠️ Error: `❌ Github Provider not found`
+Este error ocurre cuando seleccionas "GitHub" como proveedor en Dokploy pero no has integrado previamente la "GitHub App" oficial en la sección de configuración de Dokploy.
+* **Solución Inmediata (Sin configurar GitHub App)**: 
+  1. En el formulario de creación de la aplicación, en lugar de seleccionar **GitHub**, selecciona la opción **Git** (o **Git Repository** / **Custom Git**).
+  2. Pega la URL HTTPS pública de tu repositorio: `https://github.com/HmesaG/vhRD.git`
+  3. Indica la rama `main` y guarda. Dokploy clonará el repositorio directamente como repositorio público sin necesidad de configuraciones globales ni llaves.
+* **Solución Permanente (Si deseas autodepliegues automáticos al hacer push)**:
+  1. Ve a **Settings** -> **Git Providers** en tu Dokploy.
+  2. Haz clic en **GitHub** y sigue las instrucciones para enlazar tu cuenta y crear la GitHub App en tu perfil de GitHub.
+
+### 3. ⚠️ Peticiones fallidas al Backend (CORS)
 Si la app de React carga pero al intentar hacer Login o ver datos se queda cargando o da error en la consola del navegador:
 * **Causa**: La variable `CORS_ORIGIN` en el Backend no coincide exactamente con el dominio del Frontend, o la API no está escuchando de forma segura.
 * **Solución**: Verifica que:
@@ -131,3 +141,4 @@ Si la app de React carga pero al intentar hacer Login o ver datos se queda carga
 
 ## 🚀 ¡Listo!
 Siguiendo esta estructura, tu aplicación **Visitas Hub RD (vhRD)** estará completamente desplegada en producción en Dokploy de forma segura, escalable y con certificados SSL autogestionados. Si necesitas ayuda con la importación inicial de los datos a la base de datos interna, avísame.
+
