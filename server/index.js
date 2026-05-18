@@ -25,7 +25,7 @@ const PORT = process.env.PORT || 3001;
 // Middleware
 app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(cors({
-    origin: process.env.CORS_ORIGIN || '*',
+    origin: true, // Refleja el Origin de la petición dinámicamente para evitar el error de '*' con credentials
     credentials: true
 }));
 app.use(morgan('combined'));
