@@ -146,7 +146,7 @@ const Layout = ({ children, title }) => {
     const toggleDarkMode = () => setIsDarkMode(!isDarkMode);
 
     const handleSupportSubmit = () => {
-        const text = `*SOPORTE TÉCNICO VISITFLOW*\n\n` +
+        const text = `*SOPORTE TÉCNICO VISITAS HUB RD*\n\n` +
             `🏢 *Empresa:* ${companyData?.name || 'No especificada'}\n` +
             `👤 *Usuario:* ${user?.email}\n` +
             `📅 *Fecha:* ${new Date().toLocaleString()}\n` +

@@ -25,7 +25,7 @@ const SplashScreen = () => {
                     <div className="w-32 h-32 sm:w-40 sm:h-40 relative transform hover:scale-105 transition-transform duration-700">
                         <img
                             src="/logo.png"
-                            alt="VisitFlow Logo"
+                            alt="Visitas Hub RD Logo"
                             className="w-full h-full object-contain filter drop-shadow-[0_0_30px_rgba(245,130,32,0.4)]"
                         />
                     </div>
@@ -34,7 +34,7 @@ const SplashScreen = () => {
                 {/* Text Section */}
                 <div className="text-center space-y-2">
                     <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tighter italic uppercase">
-                        Visit<span className="text-primary italic">Flow</span>
+                        Visitas Hub <span className="text-primary italic">RD</span>
                     </h1>
                     <div className="flex items-center justify-center gap-3">
                         <div className="h-[2px] w-8 bg-primary/30 rounded-full" />
@@ -82,7 +82,7 @@ const SplashScreen = () => {
                     <ShieldCheck size={14} className="text-primary/60" />
                     <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">PROPIEDAD DE GMV</span>
                 </div>
-                <p className="text-[9px] font-bold text-slate-700 uppercase tracking-[0.2em]">© 2026 VISITFLOW SYSTEM v2.1.0</p>
+                <p className="text-[9px] font-bold text-slate-700 uppercase tracking-[0.2em]">© 2026 VISITAS HUB RD v2.1.0</p>
             </div>
         </div>
     );

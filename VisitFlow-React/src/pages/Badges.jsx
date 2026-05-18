@@ -354,7 +354,7 @@ const Badges = () => {
                                 <Download size={20} /> Descargar Imagen
                             </button>
 
-                            <p className="mt-4 text-[10px] text-slate-400 uppercase font-bold tracking-widest">VisitFlow Digital Badge System</p>
+                            <p className="mt-4 text-[10px] text-slate-400 uppercase font-bold tracking-widest">Visitas Hub RD Digital Badge System</p>
                         </div>
                     </div>
                 )}

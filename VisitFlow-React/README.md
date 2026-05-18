@@ -1,6 +1,6 @@
-# 💻 VisitFlow Frontend Client — React + Vite
+# 💻 Visitas Hub RD — Frontend Client (React + Vite)
 
-Este es el cliente web de **VisitFlow**, una Single Page Application (SPA) moderna, rápida y altamente interactiva, diseñada para optimizar los flujos de gestión de accesos corporativos. Construida con **React 19**, **Vite** y **Tailwind CSS**, la interfaz ofrece una experiencia premium con micro-animaciones, soporte nativo de modo oscuro (Dark Mode), y diseño adaptativo enfocado a dispositivos móviles y de escritorio.
+Este es el cliente web de **Visitas Hub RD**, una Single Page Application (SPA) moderna, rápida y altamente interactiva, diseñada para optimizar los flujos de gestión de accesos corporativos. Construida con **React 19**, **Vite** y **Tailwind CSS**, la interfaz ofrece una experiencia premium con micro-animaciones, soporte nativo de modo oscuro (Dark Mode), y diseño adaptativo enfocado a dispositivos móviles y de escritorio.
 
 ---
 

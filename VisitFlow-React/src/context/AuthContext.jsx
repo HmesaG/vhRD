@@ -17,7 +17,7 @@ export const AuthProvider = ({ children }) => {
     // Check for existing session on mount
     useEffect(() => {
         const initAuth = async () => {
-            const token = localStorage.getItem('visitflow_token');
+            const token = localStorage.getItem('vhrd_token');
             if (!token) {
                 setLoading(false);
                 return;
@@ -32,7 +32,7 @@ export const AuthProvider = ({ children }) => {
             } catch (err) {
                 // Token invalid or expired
                 console.error('Session validation failed:', err);
-                localStorage.removeItem('visitflow_token');
+                localStorage.removeItem('vhrd_token');
             } finally {
                 setLoading(false);
             }
@@ -45,7 +45,7 @@ export const AuthProvider = ({ children }) => {
         const data = await authApi.login(email, password);
 
         // Store token
-        localStorage.setItem('visitflow_token', data.token);
+        localStorage.setItem('vhrd_token', data.token);
 
         // Update state
         setUser(data.user);
@@ -57,7 +57,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     const logout = () => {
-        localStorage.removeItem('visitflow_token');
+        localStorage.removeItem('vhrd_token');
         setUser(null);
         setRole(null);
         setCompanyId(null);

@@ -1,6 +1,6 @@
-# 🏢 VisitFlow v2.5.0 — Sistema Inteligente de Gestión y Control de Visitas
+# 🏢 Visitas Hub RD v2.5.0 — Sistema Inteligente de Gestión y Control de Visitas
 
-VisitFlow es una solución de nivel corporativo desarrollada por **Grupo Mesa Vasquez (GMV)** para la automatización, seguridad y control de acceso de visitantes en entornos empresariales. Diseñado con una arquitectura multi-tenant y un robusto esquema de seguridad perimetral, el sistema permite registrar, rastrear e identificar visitas mediante credenciales físicas y digitales en tiempo real.
+Visitas Hub RD es una solución de nivel corporativo desarrollada por **Grupo Mesa Vasquez (GMV)** para la automatización, seguridad y control de acceso de visitantes en entornos empresariales. Diseñado con una arquitectura multi-tenant y un robusto esquema de seguridad perimetral, el sistema permite registrar, rastrear e identificar visitas mediante credenciales físicas y digitales en tiempo real.
 
 ---
 
@@ -128,7 +128,7 @@ Este comando descargará e inicializará:
 
 #### 1. Requisitos Previos
 * Instalar **Node.js** (v18 o superior).
-* Instalar **PostgreSQL 16** con una base de datos llamada `visitflow`.
+* Instalar **PostgreSQL 16** con una base de datos llamada `vhrd`.
 
 #### 2. Configuración del Backend
 1. Navega al directorio del servidor:
@@ -142,7 +142,7 @@ Este comando descargará e inicializará:
 3. Configura las variables de entorno creando un archivo `.env`:
    ```env
    PORT=3001
-   DATABASE_URL=postgres://tu_usuario:tu_password@localhost:5432/visitflow
+   DATABASE_URL=postgres://tu_usuario:tu_password@localhost:5432/vhrd
    JWT_SECRET=tu_clave_secreta_jwt
    CORS_ORIGIN=http://localhost:5181
    ```
@@ -169,7 +169,7 @@ Este comando descargará e inicializará:
 
 ## 🛡️ Propiedad Intelectual y Soporte
 
-VisitFlow es un producto registrado y de propiedad intelectual de **Grupo Mesa Vasquez (GMV)**. 
+Visitas Hub RD es un producto registrado y de propiedad intelectual de **Grupo Mesa Vasquez (GMV)**. 
 
 Para solicitudes comerciales, soporte técnico, integraciones personalizadas con hardware de control de accesos (molinetes, lectores biométricos) o consultas adicionales, puedes contactar al equipo técnico a través de los canales oficiales:
 

@@ -1,5 +1,5 @@
 /**
- * VisitFlow API Service
+ * Visitas Hub RD API Service
  * Centralized HTTP client that replaces all previous SDK calls.
  */
 
@@ -7,7 +7,7 @@ const API_URL = import.meta.env.VITE_API_URL || '/api';
 
 const getHeaders = () => {
     const headers = { 'Content-Type': 'application/json' };
-    const token = localStorage.getItem('visitflow_token');
+    const token = localStorage.getItem('vhrd_token');
     if (token) {
         headers['Authorization'] = `Bearer ${token}`;
     }
@@ -17,7 +17,7 @@ const getHeaders = () => {
 const handleResponse = async (response) => {
     if (response.status === 401) {
         // Token expired or invalid — clear session
-        localStorage.removeItem('visitflow_token');
+        localStorage.removeItem('vhrd_token');
         window.location.href = '/login';
         throw new Error('Sesión expirada');
     }

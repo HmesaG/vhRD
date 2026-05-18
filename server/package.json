@@ -1,7 +1,7 @@
 {
-  "name": "visitflow-api",
+  "name": "vhrd-api",
   "version": "1.0.0",
-  "description": "VisitFlow REST API - Backend para Sistema de Control de Visitas",
+  "description": "Visitas Hub RD REST API - Backend para Sistema de Control de Visitas",
   "main": "index.js",
   "type": "module",
   "scripts": {

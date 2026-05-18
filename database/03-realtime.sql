@@ -1,5 +1,5 @@
 -- ============================================================
--- VisitFlow — Real-Time Triggers (LISTEN/NOTIFY)
+-- Visitas Hub RD — Real-Time Triggers (LISTEN/NOTIFY)
 -- ============================================================
 
 -- Función genérica para enviar notificaciones JSON a un canal

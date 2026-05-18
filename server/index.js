@@ -63,7 +63,7 @@ const start = async () => {
     await testConnection();
     initRealtime(httpServer);
     httpServer.listen(PORT, () => {
-        console.log(`🚀 VisitFlow API & Realtime running on port ${PORT}`);
+        console.log(`🚀 Visitas Hub RD API & Realtime running on port ${PORT}`);
     });
 };
 
