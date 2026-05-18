@@ -8,7 +8,7 @@ import {
 import { useAuth } from '../context/AuthContext';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useOrganizationLabels } from '../hooks/useOrganizationLabels';
-import { Html5Qrcode } from 'html5-qrcode';
+import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
 
 const VisitModal = ({ isOpen, onClose }) => {
     const { companyId, companyData } = useAuth();
@@ -45,11 +45,21 @@ const VisitModal = ({ isOpen, onClose }) => {
             setIsCameraActive(true);
             setTimeout(async () => {
                 try {
-                    const html5QrCode = new Html5Qrcode("modal-reader");
+                    const html5QrCode = new Html5Qrcode("modal-reader", {
+                        formatsToSupport: [
+                            Html5QrcodeSupportedFormats.CODE_128,
+                            Html5QrcodeSupportedFormats.CODE_39,
+                            Html5QrcodeSupportedFormats.PDF_417,
+                            Html5QrcodeSupportedFormats.QR_CODE
+                        ]
+                    });
                     html5QrCodeRef.current = html5QrCode;
                     await html5QrCode.start(
                         { facingMode: "environment" },
-                        { fps: 10, qrbox: { width: 250, height: 250 } },
+                        { fps: 15, qrbox: (viewfinderWidth, viewfinderHeight) => {
+                            const width = Math.min(viewfinderWidth * 0.9, 400);
+                            return { width: width, height: 150 };
+                        } },
                         (decodedText) => {
                             setFormData(prev => ({ ...prev, document_id: decodedText }));
                             stopScanner();
