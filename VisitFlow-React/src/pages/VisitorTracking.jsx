@@ -267,12 +267,21 @@ const VisitorCard = ({ visit, areas, isExpanded, onToggle }) => {
                                     </span>
                                 </div>
                                 <div className="h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                                    <div
-                                        className={`h-full rounded-full ${visit.check_out
-                                            ? 'bg-slate-400'
-                                            : 'bg-gradient-to-r from-emerald-400 to-emerald-600 animate-pulse'}`}
-                                        style={{ width: visit.check_out ? '100%' : '60%' }}
-                                    />
+                                    {(() => {
+                                        if (visit.check_out) return (
+                                            <div className="h-full w-full rounded-full bg-slate-400" />
+                                        );
+                                        const startMs = new Date(visit.check_in).getTime();
+                                        const elapsed = Date.now() - startMs;
+                                        const REF_MS = 4 * 60 * 60 * 1000; // 4h reference
+                                        const pct = Math.min(Math.max(Math.round((elapsed / REF_MS) * 100), 5), 100);
+                                        return (
+                                            <div
+                                                className="h-full rounded-full bg-gradient-to-r from-emerald-400 to-emerald-600 transition-all duration-1000"
+                                                style={{ width: `${pct}%` }}
+                                            />
+                                        );
+                                    })()}
                                 </div>
                                 {!visit.check_out && (
                                     <p className="text-[10px] text-emerald-500 mt-1.5 font-bold">● Visita activa en tiempo real</p>

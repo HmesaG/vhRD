@@ -116,8 +116,13 @@ export const authApi = {
 // Visits
 // ============================================================
 export const visitsApi = {
-    getAll: (companyId) =>
-        request(`/visits${companyId ? `?companyId=${companyId}` : ''}`),
+    getAll: (companyId, opts = {}) => {
+        const params = new URLSearchParams();
+        if (companyId) params.set('companyId', companyId);
+        if (opts.days) params.set('days', opts.days);
+        const qs = params.toString();
+        return request(`/visits${qs ? `?${qs}` : ''}`);
+    },
 
     getById: (id) =>
         request(`/visits/${id}`),

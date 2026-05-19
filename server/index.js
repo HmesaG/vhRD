@@ -24,8 +24,28 @@ const PORT = process.env.PORT || 3001;
 
 // Middleware
 app.use(helmet({ crossOriginResourcePolicy: false }));
+
+// CORS: lista blanca de orígenes permitidos
+const ALLOWED_ORIGINS = [
+    // Desarrollo local
+    'http://localhost:5181',
+    'http://localhost:5173',
+    'http://localhost:3000',
+    // Producción — agrega aquí tus dominios definitivos
+    /\.sslip\.io$/,       // dominios dinámicos Dokploy
+    /\.grupomvrd\.com$/,  // dominio oficial GMV
+];
+
 app.use(cors({
-    origin: true, // Refleja el Origin de la petición dinámicamente para evitar el error de '*' con credentials
+    origin: (origin, callback) => {
+        // Permitir peticiones sin origin (REST clients, server-to-server)
+        if (!origin) return callback(null, true);
+        const allowed = ALLOWED_ORIGINS.some(o =>
+            typeof o === 'string' ? o === origin : o.test(origin)
+        );
+        if (allowed) return callback(null, true);
+        callback(new Error(`CORS: origen no permitido — ${origin}`));
+    },
     credentials: true
 }));
 app.use(morgan('combined'));

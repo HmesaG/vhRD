@@ -50,8 +50,8 @@ const Reports = () => {
         return new Date(val);
     };
 
-    const fetchVisits = useCallback(() => visitsApi.getAll(companyId), [companyId]);
-    const { data: fetchedVisits } = usePolling(fetchVisits, 10000, [companyId]);
+    const fetchVisits = useCallback(() => visitsApi.getAll(companyId, { days: timeFilter }), [companyId, timeFilter]);
+    const { data: fetchedVisits } = usePolling(fetchVisits, 10000, [companyId, timeFilter]);
 
     const fetchAreas = useCallback(() => areasApi.getAll(companyId), [companyId]);
     const { data: fetchedAreas } = usePolling(fetchAreas, 30000, [companyId]);
@@ -108,11 +108,36 @@ const Reports = () => {
             ? Object.entries(dayCounts).sort((a, b) => b[1] - a[1])[0][0]
             : '---';
 
+        // Real trend: compare current period vs previous same-length period
+        const days = parseInt(timeFilter);
+        const now = new Date();
+        const periodStart = new Date(now); periodStart.setDate(now.getDate() - days);
+        const prevStart = new Date(periodStart); prevStart.setDate(periodStart.getDate() - days);
+
+        const currentCount = data.filter(v => {
+            const d = parseDate(v.check_in);
+            return d && d >= periodStart && d <= now;
+        }).length;
+        const prevCount = data.filter(v => {
+            const d = parseDate(v.check_in);
+            return d && d >= prevStart && d < periodStart;
+        }).length;
+
+        let trendText = 'Sin datos previos';
+        if (prevCount > 0) {
+            const pct = Math.round(((currentCount - prevCount) / prevCount) * 100);
+            const sign = pct > 0 ? '+' : '';
+            trendText = `${sign}${pct}% vs período anterior`;
+        } else if (currentCount > 0) {
+            trendText = 'Primera medición del período';
+        }
+
         setStats({
             total: data.length,
             avgTime,
             active: data.filter(v => !v.check_out).length,
-            peakDay: peakDay.charAt(0).toUpperCase() + peakDay.slice(1)
+            peakDay: peakDay.charAt(0).toUpperCase() + peakDay.slice(1),
+            trend: trendText
         });
     };
 
@@ -285,7 +310,7 @@ const Reports = () => {
 
                 {/* Key Metrics */}
                 <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
-                    <StatBox title="Total Visitas" value={stats.total} icon={<Users size={18} />} trend="+12% vs mes anterior" />
+                    <StatBox title="Total Visitas" value={stats.total} icon={<Users size={18} />} trend={stats.trend || '---'} />
                     <StatBox title="Tiempo Promedio" value={stats.avgTime} icon={<Calendar size={18} />} trend="Estancia en planta" />
                     <StatBox title="Visitas Activas" value={stats.active} icon={<UserCheck size={18} />} color="text-green-500" trend="En este momento" />
                     <StatBox title="Día Pico" value={stats.peakDay} icon={<TrendingUp size={18} />} color="text-amber-500" trend="Mayor flujo" />

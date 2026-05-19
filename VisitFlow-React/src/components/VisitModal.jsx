@@ -40,10 +40,8 @@ const VisitModal = ({ isOpen, onClose }) => {
     const [isCameraActive, setIsCameraActive] = useState(false);
     const html5QrCodeRef = useRef(null);
 
-    // Parser for new JCE cédula QR — logs raw text so we can inspect the format
+    // Parser for new JCE cédula QR (pipe-separated format from JCE)
     const parseCedulaQR = (rawText) => {
-        console.log('[QR RAW]', rawText);
-
         // New cédula QR uses pipe | as separator
         // Common format: "CEDULA|NOMBRE|APELLIDO1|APELLIDO2|BIRTHDATE|SEX|..."
         const parts = rawText.split(/[|,;]/).map(p => p.trim()).filter(Boolean);
@@ -58,7 +56,6 @@ const VisitModal = ({ isOpen, onClose }) => {
             );
             const fullName = nameFields.slice(0, 3).join(' ').trim();
 
-            console.log('[QR PARSED]', { cedula, fullName, parts });
             return { cedula: cedula || rawText.replace(/\D/g, ''), fullName };
         }
 
@@ -66,6 +63,23 @@ const VisitModal = ({ isOpen, onClose }) => {
         const digitsOnly = rawText.replace(/\D/g, '');
         return { cedula: digitsOnly, fullName: '' };
     };
+
+    // Compress photo to max 800px wide, JPEG 0.75 quality before sending to backend
+    const compressImage = (dataUrl) => new Promise((resolve) => {
+        if (!dataUrl || !dataUrl.startsWith('data:image')) return resolve(dataUrl);
+        const img = new Image();
+        img.onload = () => {
+            const MAX = 800;
+            let { width, height } = img;
+            if (width > MAX) { height = Math.round(height * MAX / width); width = MAX; }
+            const canvas = document.createElement('canvas');
+            canvas.width = width; canvas.height = height;
+            canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+            resolve(canvas.toDataURL('image/jpeg', 0.75));
+        };
+        img.onerror = () => resolve(dataUrl);
+        img.src = dataUrl;
+    });
 
     const startScanner = async () => {
         try {
@@ -242,8 +256,15 @@ const VisitModal = ({ isOpen, onClose }) => {
 
         try {
             const selectedEmployee = employees.find(emp => emp.name === formData.employee);
+
+            // Compress photo before sending to reduce payload size
+            const compressedPhoto = formData.photo_url
+                ? await compressImage(formData.photo_url)
+                : null;
+
             const response = await visitsApi.create({
                 ...formData,
+                photo_url: compressedPhoto,
                 company_id: companyId,
                 status: 'Ingresado',
                 visitor_phone: selectedEmployee?.whatsapp || '',
@@ -272,7 +293,7 @@ const VisitModal = ({ isOpen, onClose }) => {
             }
             setFormData({ full_name: '', document_id: '', company: '', reason: '', employee: '', badge_number: '', areaId: '', accessMethod: 'badge', printTicket: false, document_id_empresa: '' });
             setIsIndependent(false);
-        } catch (err) { alert('Error: ' + err.message); }
+        } catch (err) { alert('Error al registrar visita: ' + err.message); }
     };
 
     if (!isOpen) return null;

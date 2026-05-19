@@ -13,19 +13,27 @@ const mapVisitRow = (row) => {
 
 export const getAll = async (req, res) => {
     try {
-        const { companyId } = req.query;
-        let query = 'SELECT * FROM visits';
+        const { companyId, days } = req.query;
+        const conditions = [];
         const params = [];
+        let paramIndex = 1;
 
-        if (companyId) {
-            query += ' WHERE company_id = $1';
-            params.push(companyId);
-        } else if (req.user.role !== 'superadmin') {
-            query += ' WHERE company_id = $1';
-            params.push(req.user.company_id);
+        // Tenant isolation
+        const tenantId = companyId || (req.user.role !== 'superadmin' ? req.user.company_id : null);
+        if (tenantId) {
+            conditions.push(`company_id = $${paramIndex++}`);
+            params.push(tenantId);
         }
 
-        query += ' ORDER BY check_in DESC';
+        // Date filter: when days is provided, fetch the last 2x period to allow
+        // the frontend to calculate period-over-period trend comparisons.
+        if (days && !isNaN(parseInt(days))) {
+            const lookback = parseInt(days) * 2;
+            conditions.push(`check_in >= NOW() - INTERVAL '${lookback} days'`);
+        }
+
+        const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
+        const query = `SELECT * FROM visits ${where} ORDER BY check_in DESC`;
 
         const result = await pool.query(query, params);
         res.json(result.rows.map(mapVisitRow));

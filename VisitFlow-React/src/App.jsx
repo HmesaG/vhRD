@@ -16,12 +16,9 @@ import About from './pages/About';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
-import TestPage from './pages/TestPage';
+// import TestPage from './pages/TestPage'; // Solo para dev/debug
 
 function App() {
-  // MODO DE PRUEBA: Descomenta la siguiente línea para verificar que React funciona
-  // return <TestPage />;
-
   return (
     <AuthProvider>
       <Router>
