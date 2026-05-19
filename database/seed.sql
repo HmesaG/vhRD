@@ -9,7 +9,7 @@ VALUES (
     'GMV',
     '900123456',
     'Calle Principal 123',
-    '+1 809 764 9811',
+    '+1 829 936 9811',
     'info@gmv.com'
 ) ON CONFLICT (id) DO NOTHING;
 
