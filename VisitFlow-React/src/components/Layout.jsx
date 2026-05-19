@@ -180,6 +180,14 @@ const Layout = ({ children, title }) => {
                             <Menu size={20} />
                         </button>
                         <h1 className="text-base lg:text-lg font-bold text-slate-800 dark:text-white truncate uppercase tracking-tight">{title}</h1>
+                        {companyData?.name && (
+                            <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 shrink-0">
+                                <Building2 size={13} className="text-primary shrink-0" />
+                                <span className="text-[11px] font-black text-slate-600 dark:text-slate-300 uppercase tracking-wider truncate max-w-[180px]">
+                                    {companyData.name}
+                                </span>
+                            </div>
+                        )}
                     </div>
                     <div className="flex items-center gap-2 lg:gap-4 shrink-0">
                         {role !== 'punto_de_control' && (
