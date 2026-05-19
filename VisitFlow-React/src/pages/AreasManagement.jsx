@@ -5,9 +5,13 @@ import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { Trash2, MapPin, Layers, Plus, X, Search, Edit2, Download } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 
 const AreasManagement = () => {
     const { companyId, companyData, role } = useAuth();
+    const toast = useToast();
+    const confirm = useConfirm();
     const hasPuntoDeControl = companyData?.hasPuntoDeControl ?? true;
     const [areas, setAreas] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -37,19 +41,21 @@ const AreasManagement = () => {
                     name: formData.name.trim(),
                     level: formData.level.trim()
                 });
+                toast.success('Área actualizada correctamente.');
             } else {
                 await areasApi.create({
                     name: formData.name.trim(),
                     level: formData.level.trim(),
                     company_id: companyId
                 });
+                toast.success('Área creada correctamente.');
             }
             refreshAreas();
             setIsModalOpen(false);
             setEditingArea(null);
             setFormData({ name: '', level: '' });
         } catch (err) {
-            alert('Error: ' + err.message);
+            toast.error('Error: ' + err.message);
         }
     };
 
@@ -60,17 +66,23 @@ const AreasManagement = () => {
             setFormData({ name: freshArea.name, level: freshArea.level });
             setIsModalOpen(true);
         } catch (err) {
-            alert('Error al cargar datos actualizados del área: ' + err.message);
+            toast.error('Error al cargar datos del área: ' + err.message);
         }
     };
 
     const handleDelete = async (id) => {
-        if (confirm('¿Eliminar esta área? Esto podría afectar los registros de visitas activos.')) {
+        const ok = await confirm({
+            title: '¿Eliminar esta área?',
+            message: 'Esto podría afectar los registros de visitas activos asociados a esta área.',
+            confirmLabel: 'Eliminar',
+        });
+        if (ok) {
             try {
                 await areasApi.delete(id);
                 refreshAreas();
+                toast.success('Área eliminada.');
             } catch (err) {
-                alert('Error: ' + err.message);
+                toast.error('Error: ' + err.message);
             }
         }
     };
@@ -106,9 +118,9 @@ const AreasManagement = () => {
                 try {
                     await Promise.all(promises);
                     refreshAreas();
-                    alert(`Éxito: Se importaron ${count} áreas/departamentos.`);
+                    toast.success(`Se importaron ${count} áreas/departamentos correctamente.`);
                 } catch (err) {
-                    alert('Error en importación: ' + err.message);
+                    toast.error('Error en importación: ' + err.message);
                 } finally {
                     setImporting(false);
                 }

@@ -5,9 +5,13 @@ import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { UserPlus, Shield, Mail, Trash2, Key, Building, Edit2, X, CheckCircle2, Layers, Search } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 
 const UserManagement = () => {
     const { role: currentUserRole, companyId: currentUserCompanyId } = useAuth();
+    const toast = useToast();
+    const confirm = useConfirm();
     const [users, setUsers] = useState([]);
     const [organizations, setOrganizations] = useState([]);
     const [availableAreas, setAvailableAreas] = useState([]);
@@ -54,7 +58,6 @@ const UserManagement = () => {
         e.preventDefault();
         try {
             const finalCompanyId = currentUserRole === 'superadmin' ? formData.companyId : currentUserCompanyId;
-
             const userData = {
                 email: formData.email,
                 role: formData.role,
@@ -63,19 +66,20 @@ const UserManagement = () => {
             };
 
             if (editingUser) {
-                // Only include password if the admin typed a new one
                 if (formData.password) userData.password = formData.password;
                 await usersApi.update(editingUser.id, userData);
+                toast.success('Usuario actualizado correctamente.');
             } else {
-                if (!formData.password) return alert('La contraseña es obligatoria.');
+                if (!formData.password) { toast.warning('La contraseña es obligatoria.'); return; }
                 await usersApi.create({ ...userData, password: formData.password });
+                toast.success('Usuario creado correctamente.');
             }
             refreshUsers();
             setIsModalOpen(false);
             setEditingUser(null);
             setFormData({ email: '', password: '', role: 'recepcion', companyId: currentUserRole === 'superadmin' ? '' : currentUserCompanyId, assignedAreas: [] });
         } catch (error) {
-            alert("Error guardando usuario: " + error.message);
+            toast.error('Error guardando usuario: ' + error.message);
         }
     };
 
@@ -167,10 +171,13 @@ const UserManagement = () => {
                             });
                             setIsModalOpen(true);
                         } catch (err) {
-                            alert('Error al cargar datos actualizados del usuario: ' + err.message);
+                            toast.error('Error al cargar datos del usuario: ' + err.message);
                         }
                     }} className="p-2 text-slate-400 hover:text-primary transition-colors"><Edit2 size={16} /></button>
-                    <button onClick={async () => { if (confirm('¿Eliminar permisos?')) { await usersApi.delete(row.id); refreshUsers(); } }} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                    <button onClick={async () => {
+                        const ok = await confirm({ title: '¿Eliminar permisos?', message: 'El usuario perderá acceso al sistema.', confirmLabel: 'Eliminar' });
+                        if (ok) { await usersApi.delete(row.id); refreshUsers(); toast.success('Usuario eliminado.'); }
+                    }} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
                 </div>
             )
         }

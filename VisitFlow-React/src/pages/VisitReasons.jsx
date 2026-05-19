@@ -5,9 +5,13 @@ import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { Trash2, ClipboardList, Settings2, Search, Edit2, X } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 
 const VisitReasons = () => {
     const { companyId } = useAuth();
+    const toast = useToast();
+    const confirm = useConfirm();
     const [reasons, setReasons] = useState([]);
     const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({ label: '', requiresBadge: true });
@@ -33,18 +37,20 @@ const VisitReasons = () => {
         e.preventDefault();
         const label = toTitleCase(formData.label.trim());
         if (!label) return;
-        if (!companyId) { alert("Error de sesión: Sin organización asignada."); return; }
+        if (!companyId) { toast.error('Error de sesión: Sin organización asignada.'); return; }
 
         try {
             if (isEditing) {
                 await reasonsApi.update(editingId, { label, requiresBadge: formData.requiresBadge });
+                toast.success('Motivo actualizado.');
                 cancelEdit();
             } else {
                 await reasonsApi.create({ label, requiresBadge: formData.requiresBadge, company_id: companyId });
+                toast.success('Motivo registrado.');
                 setFormData({ label: '', requiresBadge: true });
             }
             refreshReasons();
-        } catch (err) { alert('Error: ' + err.message); }
+        } catch (err) { toast.error('Error: ' + err.message); }
     };
 
     const handleEdit = async (reason) => {
@@ -55,7 +61,7 @@ const VisitReasons = () => {
             setEditingId(freshReason.id);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
-            alert('Error al cargar datos actualizados del motivo: ' + err.message);
+            toast.error('Error al cargar los datos del motivo: ' + err.message);
         }
     };
 
@@ -66,9 +72,14 @@ const VisitReasons = () => {
     };
 
     const handleDelete = async (id) => {
-        if (confirm('¿Eliminar este motivo?')) {
-            try { await reasonsApi.delete(id); refreshReasons(); }
-            catch (err) { alert('Error: ' + err.message); }
+        const ok = await confirm({
+            title: '¿Eliminar este motivo?',
+            message: 'El motivo de visita será eliminado del catálogo.',
+            confirmLabel: 'Eliminar',
+        });
+        if (ok) {
+            try { await reasonsApi.delete(id); refreshReasons(); toast.success('Motivo eliminado.'); }
+            catch (err) { toast.error('Error: ' + err.message); }
         }
     };
 

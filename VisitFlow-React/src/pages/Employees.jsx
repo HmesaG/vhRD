@@ -6,6 +6,8 @@ import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { Trash2, UserRound, Briefcase, Search, Edit2, X, Download } from 'lucide-react';
 import { useOrganizationLabels } from '../hooks/useOrganizationLabels';
+import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 
 const Employees = () => {
     const { companyId, role } = useAuth();
@@ -14,6 +16,8 @@ const Employees = () => {
         deleteConfirm, emptyMessage, countLabel, csvTemplateFilename, importSuccess,
         singular, plural, singularLow, pluralLow
     } = useOrganizationLabels();
+    const toast = useToast();
+    const confirm = useConfirm();
     const [employees, setEmployees] = useState([]);
     const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({ name: '', area: '', email: '', whatsapp: '' });
@@ -50,7 +54,7 @@ const Employees = () => {
         const name = toTitleCase(formData.name.trim());
         const area = formData.area;
         if (!name || !area) return;
-        if (!companyId) { alert("Error de sesión: Sin organización asignada."); return; }
+        if (!companyId) { toast.error('Error de sesión: Sin organización asignada.'); return; }
 
         try {
             if (isEditing) {
@@ -59,6 +63,7 @@ const Employees = () => {
                     email: formData.email.trim(),
                     whatsapp: formData.whatsapp.trim()
                 });
+                toast.success('Registro actualizado correctamente.');
                 setIsEditing(false);
                 setEditingId(null);
             } else {
@@ -68,10 +73,11 @@ const Employees = () => {
                     whatsapp: formData.whatsapp.trim(),
                     company_id: companyId
                 });
+                toast.success('Registro creado correctamente.');
             }
             refreshEmployees();
             setFormData({ name: '', area: '', email: '', whatsapp: '' });
-        } catch (err) { alert('Error: ' + err.message); }
+        } catch (err) { toast.error('Error: ' + err.message); }
     };
 
     const handleEdit = async (emp) => {
@@ -87,7 +93,7 @@ const Employees = () => {
             setEditingId(freshEmp.id);
             window.scrollTo({ top: 0, behavior: 'smooth' });
         } catch (err) {
-            alert('Error al cargar datos actualizados del empleado: ' + err.message);
+            toast.error('Error al cargar los datos: ' + err.message);
         }
     };
 
@@ -98,9 +104,14 @@ const Employees = () => {
     };
 
     const handleDelete = async (id) => {
-        if (confirm(deleteConfirm)) {
-            try { await employeesApi.delete(id); refreshEmployees(); }
-            catch (err) { alert('Error: ' + err.message); }
+        const ok = await confirm({
+            title: deleteConfirm,
+            message: 'Esta acción no se puede deshacer.',
+            confirmLabel: 'Eliminar',
+        });
+        if (ok) {
+            try { await employeesApi.delete(id); refreshEmployees(); toast.success('Registro eliminado.'); }
+            catch (err) { toast.error('Error: ' + err.message); }
         }
     };
 
@@ -139,9 +150,9 @@ const Employees = () => {
                 try {
                     await Promise.all(promises);
                     refreshEmployees();
-                    alert(importSuccess(count));
+                    toast.success(importSuccess(count));
                 } catch (err) {
-                    alert('Error en importación: ' + err.message);
+                    toast.error('Error en importación: ' + err.message);
                 } finally {
                     setImporting(false);
                 }

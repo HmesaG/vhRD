@@ -4,6 +4,8 @@ import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { Building2, Plus, Edit2, Trash2, Globe, Phone, Loader2, Search } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 
 const OrganizationManagement = () => {
     const [organizations, setOrganizations] = useState([]);
@@ -11,6 +13,8 @@ const OrganizationManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingOrg, setEditingOrg] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
+    const toast = useToast();
+    const confirm = useConfirm();
 
     // Removed logo_url, renamed nit -> rnc
     const [formData, setFormData] = useState({
@@ -39,53 +43,33 @@ const OrganizationManagement = () => {
 
     const fetchCompanyData = async () => {
         if (!formData.rnc || formData.rnc.length < 9) {
-            alert("Por favor ingresa un RNC válido (mínimo 9 dígitos).");
+            toast.warning('Por favor ingresa un RNC válido (mínimo 9 dígitos).');
             return;
         }
-
         setSearchingRnc(true);
         try {
             const response = await fetch('/api-dgii/Contribuyentes', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ "RNC": formData.rnc })
             });
-
             if (!response.ok) throw new Error('Error al consultar API');
-
             const data = await response.json();
-
-            // Handle array response if API returns specific structure
             let validData = data;
-            if (Array.isArray(data)) {
-                validData = data.length > 0 ? data[0] : {};
-            }
-
-            // Flexible key search for name
+            if (Array.isArray(data)) validData = data.length > 0 ? data[0] : {};
             const keys = Object.keys(validData);
             const nameKey = keys.find(k =>
-                k.toLowerCase().includes('nomb') ||
-                k.toLowerCase().includes('razon') ||
-                k.toLowerCase().includes('social') ||
-                k.toLowerCase() === 'name' ||
-                k.toLowerCase() === 'description'
+                k.toLowerCase().includes('nomb') || k.toLowerCase().includes('razon') ||
+                k.toLowerCase().includes('social') || k.toLowerCase() === 'name' || k.toLowerCase() === 'description'
             );
-
             const companyName = nameKey ? validData[nameKey] : '';
-
             if (companyName) {
                 setFormData(prev => ({ ...prev, name: toTitleCase(companyName) }));
             } else {
-                console.error("Available keys:", keys);
-                alert(`RNC validado pero sin nombre claro. Propiedades detectadas: ${keys.join(', ')}`);
+                toast.warning(`RNC validado pero sin nombre claro. Propiedades: ${keys.join(', ')}`);
             }
-
         } catch (error) {
-            console.error("Error fetching company:", error);
-            alert("No se pudo obtener datos automáticos. Por favor ingresa el nombre manualmente.");
+            toast.error('No se pudo obtener datos automáticos. Ingresa el nombre manualmente.');
         } finally {
             setSearchingRnc(false);
         }
@@ -93,21 +77,20 @@ const OrganizationManagement = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const payload = {
-            ...formData,
-            nit: formData.rnc // Map rnc to nit for the backend
-        };
+        const payload = { ...formData, nit: formData.rnc };
         try {
             if (editingOrg) {
                 await organizationsApi.update(editingOrg.id, payload);
+                toast.success('Organización actualizada correctamente.');
             } else {
                 await organizationsApi.create(payload);
+                toast.success('Organización creada correctamente.');
             }
             refreshOrgs();
             setIsModalOpen(false);
             setEditingOrg(null);
             setFormData({ name: '', rnc: '', address: 'oficina', phone: '', email: '', hasPuntoDeControl: true });
-        } catch (error) { alert("Error: " + error.message); }
+        } catch (error) { toast.error('Error: ' + error.message); }
     };
 
     const filteredOrganizations = organizations.filter(o =>
@@ -161,7 +144,7 @@ const OrganizationManagement = () => {
                             setEditingOrg(freshOrg);
                             setFormData({
                                 name: freshOrg.name || '',
-                                rnc: freshOrg.rnc || freshOrg.nit || '', // Backward compatibility
+                                rnc: freshOrg.rnc || freshOrg.nit || '',
                                 address: freshOrg.address || 'oficina',
                                 phone: freshOrg.phone || '',
                                 email: freshOrg.email || '',
@@ -169,10 +152,13 @@ const OrganizationManagement = () => {
                             });
                             setIsModalOpen(true);
                         } catch (err) {
-                            alert('Error al cargar datos actualizados de la organización: ' + err.message);
+                            toast.error('Error al cargar datos de la organización: ' + err.message);
                         }
                     }} className="p-2 text-slate-400 hover:text-primary transition-colors"><Edit2 size={16} /></button>
-                    <button onClick={async () => { if (confirm('¿Eliminar esta organización?')) { await organizationsApi.delete(row.id); refreshOrgs(); } }} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
+                    <button onClick={async () => {
+                        const ok = await confirm({ title: '¿Eliminar esta organización?', message: 'Todos sus datos serán eliminados permanentemente.', confirmLabel: 'Eliminar' });
+                        if (ok) { await organizationsApi.delete(row.id); refreshOrgs(); toast.success('Organización eliminada.'); }
+                    }} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
                 </div>
             )
         }

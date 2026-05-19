@@ -9,10 +9,12 @@ import { useAuth } from '../context/AuthContext';
 import { QRCodeCanvas } from 'qrcode.react';
 import { useOrganizationLabels } from '../hooks/useOrganizationLabels';
 import { Html5Qrcode, Html5QrcodeSupportedFormats } from 'html5-qrcode';
+import { useToast } from '../context/ToastContext';
 
 const VisitModal = ({ isOpen, onClose }) => {
     const { companyId, companyData } = useAuth();
     const { hostSingular } = useOrganizationLabels();
+    const toast = useToast();
     const [formData, setFormData] = useState({
         full_name: '',
         document_id: '',
@@ -250,7 +252,7 @@ const VisitModal = ({ isOpen, onClose }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (formData.accessMethod === 'badge' && !formData.badge_number) {
-            alert('Por favor asigna un carnet.');
+            toast.warning('Por favor asigna un carnet antes de continuar.');
             return;
         }
 
@@ -270,6 +272,8 @@ const VisitModal = ({ isOpen, onClose }) => {
                 visitor_phone: selectedEmployee?.whatsapp || '',
                 visitor_email: selectedEmployee?.email || ''
             });
+
+            toast.success('Visita registrada correctamente.');
 
             if (formData.printTicket) {
                 const area = areas.find(a => a.id === formData.areaId);
@@ -293,7 +297,7 @@ const VisitModal = ({ isOpen, onClose }) => {
             }
             setFormData({ full_name: '', document_id: '', company: '', reason: '', employee: '', badge_number: '', areaId: '', accessMethod: 'badge', printTicket: false, document_id_empresa: '' });
             setIsIndependent(false);
-        } catch (err) { alert('Error al registrar visita: ' + err.message); }
+        } catch (err) { toast.error('Error al registrar visita: ' + err.message); }
     };
 
     if (!isOpen) return null;

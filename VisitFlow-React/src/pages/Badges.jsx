@@ -6,9 +6,13 @@ import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { Trash2, IdCard, Search, QrCode, Edit2, X, Download } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
+import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 
 const Badges = () => {
     const { companyId } = useAuth();
+    const toast = useToast();
+    const confirm = useConfirm();
     const [badges, setBadges] = useState([]);
     const [loading, setLoading] = useState(true);
     const [formData, setFormData] = useState({ prefix: '', startNumber: '1', quantity: 1 });
@@ -67,11 +71,11 @@ const Badges = () => {
         const prefix = formData.prefix.toUpperCase().trim();
 
         if (isNaN(start) || isNaN(qty) || qty < 1) {
-            alert('Por favor, ingresa números válidos.');
+            toast.warning('Por favor, ingresa números válidos.');
             return;
         }
 
-        if (!companyId) { alert("Error de sesión: Sin organización asignada."); return; }
+        if (!companyId) { toast.error('Error de sesión: Sin organización asignada.'); return; }
 
         try {
             const promises = [];
@@ -89,14 +93,15 @@ const Badges = () => {
             }
 
             if (promises.length === 0) {
-                alert('Los carnets con esta nomenclatura ya existen.');
+                toast.warning('Los carnets con esta nomenclatura ya existen.');
                 return;
             }
 
             await Promise.all(promises);
             refreshBadges();
+            toast.success(`${promises.length} carnet(s) generado(s) correctamente.`);
             setFormData(prev => ({ ...prev, quantity: 1 }));
-        } catch (err) { alert('Error: ' + err.message); }
+        } catch (err) { toast.error('Error: ' + err.message); }
     };
 
     const handleUpdate = async (e) => {
@@ -105,10 +110,11 @@ const Badges = () => {
         try {
             await badgesApi.update(editingId, { number: editNumber.toUpperCase().trim() });
             refreshBadges();
+            toast.success('Carnet actualizado correctamente.');
             setIsEditing(false);
             setEditingId(null);
             setEditNumber('');
-        } catch (err) { alert('Error: ' + err.message); }
+        } catch (err) { toast.error('Error: ' + err.message); }
     };
 
     const handleEdit = async (badge) => {
@@ -118,7 +124,7 @@ const Badges = () => {
             setEditingId(freshBadge.id);
             setIsEditing(true);
         } catch (err) {
-            alert('Error al cargar datos actualizados del carnet: ' + err.message);
+            toast.error('Error al cargar datos del carnet: ' + err.message);
         }
     };
 
@@ -139,9 +145,14 @@ const Badges = () => {
     };
 
     const handleDelete = async (id) => {
-        if (confirm('¿Eliminar este carnet permanentemente?')) {
-            try { await badgesApi.delete(id); refreshBadges(); }
-            catch (err) { alert('Error: ' + err.message); }
+        const ok = await confirm({
+            title: '¿Eliminar este carnet?',
+            message: 'El carnet será eliminado permanentemente del inventario.',
+            confirmLabel: 'Eliminar',
+        });
+        if (ok) {
+            try { await badgesApi.delete(id); refreshBadges(); toast.success('Carnet eliminado.'); }
+            catch (err) { toast.error('Error: ' + err.message); }
         }
     };
 

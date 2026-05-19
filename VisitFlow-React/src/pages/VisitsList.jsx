@@ -6,10 +6,14 @@ import DataTable from '../components/DataTable';
 import { LogOut, Mail, Send, Camera, Search, Filter, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useOrganizationLabels } from '../hooks/useOrganizationLabels';
+import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 
 const VisitsList = () => {
     const { companyId } = useAuth();
     const { hostSingular, singularLow, placeholderSearch } = useOrganizationLabels();
+    const toast = useToast();
+    const confirm = useConfirm();
     const [visits, setVisits] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -55,23 +59,29 @@ const VisitsList = () => {
     }, [fetchedVisits]);
 
     const handleCheckOut = async (id) => {
-        if (confirm('¿Registrar salida de este visitante?')) {
+        const ok = await confirm({
+            title: '¿Registrar salida?',
+            message: '¿Confirmas que este visitante ha abandonado las instalaciones?',
+            confirmLabel: 'Registrar Salida',
+        });
+        if (ok) {
             try {
                 await visitsApi.update(id, { check_out: new Date().toISOString(), status: 'Salida' });
                 refreshVisits();
-            } catch (err) { alert('Error: ' + err.message); }
+                toast.success('Salida registrada correctamente.');
+            } catch (err) { toast.error('Error: ' + err.message); }
         }
     };
 
     const handleEmail = (row) => {
-        if (!row.visitor_email) return alert(`El ${singularLow} no tiene email registrado.`);
+        if (!row.visitor_email) return toast.warning(`El ${singularLow} no tiene email registrado.`);
         const subject = encodeURIComponent(`Aviso de Visita: ${row.full_name}`);
         const body = encodeURIComponent(`Hola ${row.employee},\n\nTe informamos que ${row.full_name} de la empresa ${row.company} se encuentra en recepción.\n\nSaludos,\nSistema de Visitas.`);
         window.location.href = `mailto:${row.visitor_email}?subject=${subject}&body=${body}`;
     };
 
     const handleWhatsApp = (row) => {
-        if (!row.visitor_phone) return alert(`El ${singularLow} no tiene WhatsApp registrado.`);
+        if (!row.visitor_phone) return toast.warning(`El ${singularLow} no tiene WhatsApp registrado.`);
         const phone = row.visitor_phone.replace(/\D/g, '');
         const text = encodeURIComponent(`Hola, ${row.employee}. El visitante ${row.full_name} de ${row.company} ha llegado para verte.`);
         window.open(`https://wa.me/${phone}?text=${text}`, '_blank');

@@ -14,12 +14,16 @@ import SecurityPanel from './pages/SecurityPanel';
 import VisitorTracking from './pages/VisitorTracking';
 import About from './pages/About';
 import { AuthProvider } from './context/AuthContext';
+import { ToastProvider } from './context/ToastContext';
+import { ConfirmProvider } from './context/ConfirmContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
 // import TestPage from './pages/TestPage'; // Solo para dev/debug
 
 function App() {
   return (
+    <ToastProvider>
+    <ConfirmProvider>
     <AuthProvider>
       <Router>
         <Routes>
@@ -105,6 +109,8 @@ function App() {
         </Routes>
       </Router>
     </AuthProvider>
+    </ConfirmProvider>
+    </ToastProvider>
   );
 }
 

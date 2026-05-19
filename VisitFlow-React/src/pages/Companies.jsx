@@ -5,9 +5,13 @@ import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
 import { Trash2, Building2, Search, Plus, X, Loader2, Globe, Edit2 } from 'lucide-react';
+import { useToast } from '../context/ToastContext';
+import { useConfirm } from '../context/ConfirmContext';
 
 const Companies = () => {
     const { companyId } = useAuth();
+    const toast = useToast();
+    const confirm = useConfirm();
     const [companies, setCompanies] = useState([]);
     const [loading, setLoading] = useState(true);
     const [searchTerm, setSearchTerm] = useState('');
@@ -35,7 +39,7 @@ const Companies = () => {
 
     const fetchCompanyData = async () => {
         if (!formData.rnc || formData.rnc.length < 9) {
-            alert("Por favor ingresa un RNC válido (mínimo 9 dígitos).");
+            toast.warning('Por favor ingresa un RNC válido (mínimo 9 dígitos).');
             return;
         }
 
@@ -43,45 +47,29 @@ const Companies = () => {
         try {
             const response = await fetch('/api-dgii/Contribuyentes', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
+                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
                 body: JSON.stringify({ "RNC": formData.rnc })
             });
 
             if (!response.ok) throw new Error('Error al consultar API');
-
             const data = await response.json();
-
-            // Handle array response if API returns specific structure
             let validData = data;
-            if (Array.isArray(data)) {
-                validData = data.length > 0 ? data[0] : {};
-            }
+            if (Array.isArray(data)) validData = data.length > 0 ? data[0] : {};
 
-            // Flexible key search for name
             const keys = Object.keys(validData);
             const nameKey = keys.find(k =>
-                k.toLowerCase().includes('nomb') ||
-                k.toLowerCase().includes('razon') ||
-                k.toLowerCase().includes('social') ||
-                k.toLowerCase() === 'name' ||
-                k.toLowerCase() === 'description'
+                k.toLowerCase().includes('nomb') || k.toLowerCase().includes('razon') ||
+                k.toLowerCase().includes('social') || k.toLowerCase() === 'name' || k.toLowerCase() === 'description'
             );
-
             const companyName = nameKey ? validData[nameKey] : '';
 
             if (companyName) {
                 setFormData(prev => ({ ...prev, name: toTitleCase(companyName) }));
             } else {
-                console.error("Available keys:", keys);
-                alert(`RNC validado pero sin nombre claro. Propiedades detectadas: ${keys.join(', ')}`);
+                toast.warning(`RNC validado pero sin nombre claro. Propiedades detectadas: ${keys.join(', ')}`);
             }
-
         } catch (error) {
-            console.error("Error fetching company:", error);
-            alert("No se pudo obtener datos automáticos. Por favor ingresa el nombre manualmente.");
+            toast.error('No se pudo obtener datos automáticos. Por favor ingresa el nombre manualmente.');
         } finally {
             setSearchingRnc(false);
         }
@@ -91,17 +79,19 @@ const Companies = () => {
         e.preventDefault();
         const name = toTitleCase(formData.name.trim());
         if (!name) return;
-        if (!companyId) { alert("Error de sesión: Sin organización asignada."); return; }
+        if (!companyId) { toast.error('Error de sesión: Sin organización asignada.'); return; }
 
         try {
             if (isEditing) {
                 await companiesApi.update(editingId, { name, rnc: formData.rnc.trim() });
+                toast.success('Empresa actualizada correctamente.');
             } else {
                 await companiesApi.create({ name, rnc: formData.rnc.trim(), company_id: companyId });
+                toast.success('Empresa registrada correctamente.');
             }
             refreshCompanies();
             closeModal();
-        } catch (err) { alert('Error: ' + err.message); }
+        } catch (err) { toast.error('Error: ' + err.message); }
     };
 
     const handleEdit = async (company) => {
@@ -112,7 +102,7 @@ const Companies = () => {
             setIsEditing(true);
             setIsModalOpen(true);
         } catch (err) {
-            alert('Error al cargar datos actualizados de la empresa: ' + err.message);
+            toast.error('Error al cargar datos de la empresa: ' + err.message);
         }
     };
 
@@ -124,9 +114,14 @@ const Companies = () => {
     };
 
     const handleDelete = async (id) => {
-        if (confirm('¿Eliminar esta empresa?')) {
-            try { await companiesApi.delete(id); refreshCompanies(); }
-            catch (err) { alert('Error: ' + err.message); }
+        const ok = await confirm({
+            title: '¿Eliminar esta empresa?',
+            message: 'La empresa será eliminada del directorio.',
+            confirmLabel: 'Eliminar',
+        });
+        if (ok) {
+            try { await companiesApi.delete(id); refreshCompanies(); toast.success('Empresa eliminada.'); }
+            catch (err) { toast.error('Error: ' + err.message); }
         }
     };
 
