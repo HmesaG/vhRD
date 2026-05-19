@@ -152,7 +152,7 @@ const About = () => {
                                     <p className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em]">Redes Oficiales</p>
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2 text-[11px] font-bold text-slate-300">
-                                            <Phone size={12} className="text-primary" /> 809.764.9811
+                                            <Phone size={12} className="text-primary" /> 829-936-9811
                                         </div>
                                         <a href="https://www.grupomvrd.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-[11px] font-bold text-slate-300 hover:text-primary transition-colors">
                                             <Zap size={12} className="text-primary" /> www.grupomvrd.com

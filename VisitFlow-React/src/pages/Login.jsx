@@ -79,7 +79,7 @@ const Login = () => {
             `*Correo:* ${requestData.email}\n` +
             `*Número:* ${requestData.phone}\n\n` +
             `Hola, me gustaría recibir más información sobre Visitas Hub RD.`;
-        const waUrl = `https://wa.me/18097649811?text=${encodeURIComponent(message)}`;
+        const waUrl = `https://wa.me/18299369811?text=${encodeURIComponent(message)}`;
         window.open(waUrl, '_blank');
         setIsRequestModalOpen(false);
         setRequestData({ name: '', email: '', phone: '' });
@@ -143,9 +143,9 @@ const Login = () => {
                         <div className="space-y-3">
                             <h3 className="text-slate-500 text-[9px] font-black uppercase tracking-[0.3em]">Contacto y Soporte</h3>
                             <div className="space-y-2">
-                                <a href="tel:8097649811" className="flex items-center gap-2.5 text-slate-400 hover:text-white transition-all duration-300 group">
+                                <a href="tel:8299369811" className="flex items-center gap-2.5 text-slate-400 hover:text-white transition-all duration-300 group">
                                     <Phone size={12} className="text-primary/60 group-hover:text-primary shrink-0" />
-                                    <span className="text-[11px] font-black tracking-tight">809.764.9811</span>
+                                    <span className="text-[11px] font-black tracking-tight">829-936-9811</span>
                                 </a>
                                 <a href="https://www.grupomvrd.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2.5 text-slate-400 hover:text-white transition-all duration-300 group">
                                     <Globe size={12} className="text-primary/60 group-hover:text-primary shrink-0" />
@@ -331,9 +331,9 @@ const Login = () => {
                         <div className="space-y-3">
                             <h3 className="text-slate-500 text-[9px] font-black uppercase tracking-[0.25em]">Contacto</h3>
                             <div className="space-y-2">
-                                <a href="tel:8097649811" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group">
+                                <a href="tel:8299369811" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group">
                                     <Phone size={12} className="text-primary/60 group-hover:text-primary" />
-                                    <span className="text-[11px] font-black">809.764.9811</span>
+                                    <span className="text-[11px] font-black">829-936-9811</span>
                                 </a>
                                 <a href="https://www.grupomvrd.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors group">
                                     <Globe size={12} className="text-primary/60 group-hover:text-primary" />

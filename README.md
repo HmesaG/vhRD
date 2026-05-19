@@ -173,7 +173,7 @@ Visitas Hub RD es un producto registrado y de propiedad intelectual de **Grupo M
 
 Para solicitudes comerciales, soporte técnico, integraciones personalizadas con hardware de control de accesos (molinetes, lectores biométricos) o consultas adicionales, puedes contactar al equipo técnico a través de los canales oficiales:
 
-* 📞 **Teléfono de Soporte:** 809.764.9811
+* 📞 **Teléfono de Soporte:** 829-936-9811
 * 📧 **Correo Principal:** [grupomv.rd@outlook.com](mailto:grupomv.rd@outlook.com)
 * 📧 **Correo Alternativo:** [grupomv.rd@gmail.com](mailto:grupomv.rd@gmail.com)
 * 🌐 **Sitio Web Oficial:** [www.grupomvrd.com](https://www.grupomvrd.com)
