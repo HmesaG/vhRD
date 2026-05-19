@@ -197,27 +197,20 @@ const VisitModal = ({ isOpen, onClose }) => {
 
         setSearchingRnc(true);
         try {
-            const response = await fetch('/api-dgii/Contribuyentes', {
-                method: 'POST',
-                headers: { 
-                    'Content-Type': 'application/json',
-                    'Accept': 'application/json'
-                },
-                body: JSON.stringify({ "RNC": cleanRnc })
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                const validData = Array.isArray(data) ? (data[0] || {}) : data;
-                const nameKey = Object.keys(validData).find(k => 
-                    /nomb|razon|social/i.test(k)
-                );
-                if (nameKey && validData[nameKey]) {
-                    setFormData(prev => ({ ...prev, company: toTitleCase(validData[nameKey]) }));
-                }
+            const data = await companiesApi.lookupRnc(cleanRnc);
+            const validData = Array.isArray(data) ? (data[0] || {}) : data;
+            const nameKey = Object.keys(validData).find(k => 
+                /nomb|razon|social/i.test(k)
+            );
+            if (nameKey && validData[nameKey]) {
+                setFormData(prev => ({ ...prev, company: toTitleCase(validData[nameKey]) }));
+                toast.success('RNC verificado correctamente.');
+            } else {
+                toast.warning('RNC válido pero sin nombre comercial claro.');
             }
         } catch (error) {
             console.error("Error fetching company:", error);
+            toast.error(error.message || 'No se pudo obtener datos del RNC.');
         } finally {
             setSearchingRnc(false);
         }

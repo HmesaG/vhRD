@@ -45,14 +45,7 @@ const Companies = () => {
 
         setSearchingRnc(true);
         try {
-            const response = await fetch('/api-dgii/Contribuyentes', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ "RNC": formData.rnc })
-            });
-
-            if (!response.ok) throw new Error('Error al consultar API');
-            const data = await response.json();
+            const data = await companiesApi.lookupRnc(formData.rnc);
             let validData = data;
             if (Array.isArray(data)) validData = data.length > 0 ? data[0] : {};
 
@@ -65,11 +58,13 @@ const Companies = () => {
 
             if (companyName) {
                 setFormData(prev => ({ ...prev, name: toTitleCase(companyName) }));
+                toast.success('RNC verificado correctamente.');
             } else {
                 toast.warning(`RNC validado pero sin nombre claro. Propiedades detectadas: ${keys.join(', ')}`);
             }
         } catch (error) {
-            toast.error('No se pudo obtener datos automáticos. Por favor ingresa el nombre manualmente.');
+            console.error("Error fetching company:", error);
+            toast.error(error.message || 'No se pudo obtener datos automáticos. Por favor ingresa el nombre manualmente.');
         } finally {
             setSearchingRnc(false);
         }

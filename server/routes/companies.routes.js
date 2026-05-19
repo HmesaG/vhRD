@@ -7,6 +7,7 @@ const router = Router();
 router.use(authenticate);
 
 router.get('/', companiesController.getAll);
+router.get('/rnc/:rnc', companiesController.lookupRnc);
 router.get('/:id', companiesController.getById);
 router.post('/', rbac('administrador'), companiesController.create);
 router.patch('/:id', rbac('administrador'), companiesController.update);

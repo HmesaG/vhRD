@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { organizationsApi } from '../services/api';
+import { organizationsApi, companiesApi } from '../services/api';
 import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
@@ -48,13 +48,7 @@ const OrganizationManagement = () => {
         }
         setSearchingRnc(true);
         try {
-            const response = await fetch('/api-dgii/Contribuyentes', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-                body: JSON.stringify({ "RNC": formData.rnc })
-            });
-            if (!response.ok) throw new Error('Error al consultar API');
-            const data = await response.json();
+            const data = await companiesApi.lookupRnc(formData.rnc);
             let validData = data;
             if (Array.isArray(data)) validData = data.length > 0 ? data[0] : {};
             const keys = Object.keys(validData);
@@ -65,11 +59,13 @@ const OrganizationManagement = () => {
             const companyName = nameKey ? validData[nameKey] : '';
             if (companyName) {
                 setFormData(prev => ({ ...prev, name: toTitleCase(companyName) }));
+                toast.success('RNC verificado correctamente.');
             } else {
                 toast.warning(`RNC validado pero sin nombre claro. Propiedades: ${keys.join(', ')}`);
             }
         } catch (error) {
-            toast.error('No se pudo obtener datos automáticos. Ingresa el nombre manualmente.');
+            console.error("Error fetching company:", error);
+            toast.error(error.message || 'No se pudo obtener datos automáticos. Ingresa el nombre manualmente.');
         } finally {
             setSearchingRnc(false);
         }

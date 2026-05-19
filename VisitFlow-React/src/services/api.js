@@ -204,6 +204,9 @@ export const companiesApi = {
 
     batchDelete: (ids) =>
         request('/companies/batch-delete', { method: 'POST', body: JSON.stringify({ ids }) }),
+
+    lookupRnc: (rnc) =>
+        request(`/companies/rnc/${rnc}`),
 };
 
 // ============================================================

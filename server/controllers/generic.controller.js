@@ -173,6 +173,54 @@ export const companiesController = createCrudController('visitor_companies', {
     ]
 });
 
+companiesController.lookupRnc = async (req, res) => {
+    try {
+        const { rnc } = req.params;
+        const cleanRnc = rnc.replace(/\D/g, '');
+        if (cleanRnc.length < 9) {
+            return res.status(400).json({ error: 'RNC inválido (mínimo 9 dígitos)' });
+        }
+
+        console.log(`[DGII Lookup] Querying RNC: ${cleanRnc}`);
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+        try {
+            const response = await fetch('https://wptsoftwares.giize.com:54443/WPTConsultasDGIApiLocal/wptconsultasdgii/Contribuyentes', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Accept': 'application/json'
+                },
+                body: JSON.stringify({ "RNC": cleanRnc }),
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                console.error(`[DGII Lookup] External API responded with status ${response.status}`);
+                return res.status(502).json({ error: 'La API externa de la DGII no está disponible' });
+            }
+
+            const data = await response.json();
+            return res.json(data);
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            if (fetchError.name === 'AbortError') {
+                console.error(`[DGII Lookup] Timeout querying RNC: ${cleanRnc}`);
+                return res.status(504).json({ error: 'Tiempo de espera agotado al consultar la API de la DGII' });
+            }
+            throw fetchError;
+        }
+    } catch (err) {
+        console.error('[DGII Lookup] Unhandled error:', err);
+        return res.status(500).json({ error: 'Error al consultar el RNC en el servidor' });
+    }
+};
+
+
 export const reasonsController = createCrudController('visit_reasons', {
     orderBy: 'label ASC',
     insertFields: [
