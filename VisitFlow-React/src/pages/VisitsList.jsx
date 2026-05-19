@@ -74,14 +74,14 @@ const VisitsList = () => {
     };
 
     const handleEmail = (row) => {
-        if (!row.visitor_email) return toast.warning(`El ${singularLow} no tiene email registrado.`);
+        if (!row.visitor_email) return toast.warning(`El empleado receptor (${row.employee}) no tiene email registrado.`);
         const subject = encodeURIComponent(`Aviso de Visita: ${row.full_name}`);
         const body = encodeURIComponent(`Hola ${row.employee},\n\nTe informamos que ${row.full_name} de la empresa ${row.company} se encuentra en recepción.\n\nSaludos,\nSistema de Visitas.`);
         window.location.href = `mailto:${row.visitor_email}?subject=${subject}&body=${body}`;
     };
 
     const handleWhatsApp = (row) => {
-        if (!row.visitor_phone) return toast.warning(`El ${singularLow} no tiene WhatsApp registrado.`);
+        if (!row.visitor_phone) return toast.warning(`El empleado receptor (${row.employee}) no tiene WhatsApp registrado.`);
         const phone = row.visitor_phone.replace(/\D/g, '');
         const text = encodeURIComponent(`Hola, ${row.employee}. El visitante ${row.full_name} de ${row.company} ha llegado para verte.`);
         window.open(`https://wa.me/${phone}?text=${text}`, '_blank');
