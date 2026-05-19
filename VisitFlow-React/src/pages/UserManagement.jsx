@@ -15,7 +15,7 @@ const UserManagement = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
     const [searchTerm, setSearchTerm] = useState('');
-    const [formData, setFormData] = useState({ uid: '', email: '', role: 'recepcion', companyId: '', assignedAreas: [] });
+    const [formData, setFormData] = useState({ email: '', password: '', role: 'recepcion', companyId: '', assignedAreas: [] });
 
     const fetchUsers = useCallback(async () => {
         const all = await usersApi.getAll();
@@ -63,14 +63,17 @@ const UserManagement = () => {
             };
 
             if (editingUser) {
-                await usersApi.update(formData.uid, userData);
+                // Only include password if the admin typed a new one
+                if (formData.password) userData.password = formData.password;
+                await usersApi.update(editingUser.id, userData);
             } else {
-                await usersApi.create({ ...userData, uid: formData.uid });
+                if (!formData.password) return alert('La contraseña es obligatoria.');
+                await usersApi.create({ ...userData, password: formData.password });
             }
             refreshUsers();
             setIsModalOpen(false);
             setEditingUser(null);
-            setFormData({ uid: '', email: '', role: 'recepcion', companyId: currentUserRole === 'superadmin' ? '' : currentUserCompanyId, assignedAreas: [] });
+            setFormData({ email: '', password: '', role: 'recepcion', companyId: currentUserRole === 'superadmin' ? '' : currentUserCompanyId, assignedAreas: [] });
         } catch (error) {
             alert("Error guardando usuario: " + error.message);
         }
@@ -154,8 +157,8 @@ const UserManagement = () => {
                     <button onClick={() => {
                         setEditingUser(row);
                         setFormData({
-                            uid: row.id,
                             email: row.email,
+                            password: '',
                             role: row.role,
                             companyId: row.companyId,
                             assignedAreas: row.assignedAreas || []
@@ -184,8 +187,8 @@ const UserManagement = () => {
                             className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-sm focus:ring-2 focus:ring-primary shadow-sm"
                         />
                     </div>
-                    <button onClick={() => { setEditingUser(null); setFormData({ email: '', role: 'recepcion', uid: '', companyId: currentUserCompanyId }); setIsModalOpen(true); }} className="w-full sm:w-auto bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all justify-center">
-                        <UserPlus size={16} /> Vincular Usuario
+                    <button onClick={() => { setEditingUser(null); setFormData({ email: '', password: '', role: 'recepcion', companyId: currentUserRole === 'superadmin' ? '' : currentUserCompanyId, assignedAreas: [] }); setIsModalOpen(true); }} className="w-full sm:w-auto bg-primary text-white px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all justify-center">
+                        <UserPlus size={16} /> Nuevo Usuario
                     </button>
                 </div>
 
@@ -200,19 +203,39 @@ const UserManagement = () => {
                     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm overflow-y-auto">
                         <div className="bg-white dark:bg-slate-900 w-full max-w-md my-8 rounded-3xl shadow-2xl p-4 sm:p-6 lg:p-8 border border-slate-200 dark:border-slate-800 animate-in fade-in zoom-in duration-200">
                             <div className="flex justify-between items-center mb-4 sm:mb-6">
-                                <h3 className="text-base sm:text-xl font-bold text-slate-800 dark:text-white uppercase tracking-tight">{editingUser ? 'Editar Perfil' : 'Vincular Usuario'}</h3>
+                                <h3 className="text-base sm:text-xl font-bold text-slate-800 dark:text-white uppercase tracking-tight">{editingUser ? 'Editar Usuario' : 'Nuevo Usuario'}</h3>
                                 <button onClick={() => setIsModalOpen(false)} className="text-slate-400 hover:text-slate-600"><X size={22} /></button>
                             </div>
 
-
                             <form onSubmit={handleSubmit} className="space-y-4">
+                                {/* Read-only ID display when editing */}
+                                {editingUser && (
+                                    <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl px-4 py-2.5 flex items-center gap-3">
+                                        <Key size={13} className="text-slate-400 shrink-0" />
+                                        <div>
+                                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">ID del Sistema</p>
+                                            <p className="text-[11px] font-mono text-slate-500 dark:text-slate-400 truncate">{editingUser.id}</p>
+                                        </div>
+                                    </div>
+                                )}
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Email del Usuario (Auth)</label>
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">Correo Electrónico</label>
                                     <input required type="email" className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-3 px-4 text-sm" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} />
                                 </div>
                                 <div className="space-y-1.5">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">ID de Usuario</label>
-                                    <input required disabled={!!editingUser} type="text" className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-3 px-4 text-sm font-mono text-[11px]" placeholder="ID largo de 28 caracteres..." value={formData.uid} onChange={e => setFormData({ ...formData, uid: e.target.value })} />
+                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest ml-1">
+                                        {editingUser ? 'Nueva Contraseña' : 'Contraseña'}
+                                        {editingUser && <span className="ml-1 normal-case font-medium text-slate-300">(dejar vacío para no cambiar)</span>}
+                                    </label>
+                                    <input
+                                        required={!editingUser}
+                                        type="password"
+                                        minLength={6}
+                                        className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-xl py-3 px-4 text-sm"
+                                        placeholder={editingUser ? '••••••••' : 'Mínimo 6 caracteres'}
+                                        value={formData.password}
+                                        onChange={e => setFormData({ ...formData, password: e.target.value })}
+                                    />
                                 </div>
                                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                     <div className="space-y-1.5">
@@ -307,7 +330,7 @@ const UserManagement = () => {
                                     </div>
                                 )}
                                 <button type="submit" className="w-full bg-primary text-white py-4 rounded-xl font-black text-sm shadow-lg shadow-primary/20 mt-4 active:scale-95 transition-all">
-                                    Confirmar {editingUser ? 'Cambios' : 'Vinculación'}
+                                    {editingUser ? 'Guardar Cambios' : 'Crear Usuario'}
                                 </button>
                             </form>
                         </div>
