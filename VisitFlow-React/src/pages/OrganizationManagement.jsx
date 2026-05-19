@@ -155,15 +155,22 @@ const OrganizationManagement = () => {
             className: 'text-right',
             render: (row) => (
                 <div className="flex justify-end gap-1">
-                    <button onClick={() => {
-                        setEditingOrg(row); setFormData({
-                            name: row.name || '',
-                            rnc: row.rnc || row.nit || '', // Backward compatibility
-                            address: row.address || 'oficina',
-                            phone: row.phone || '',
-                            email: row.email || '',
-                            hasPuntoDeControl: row.hasPuntoDeControl ?? true
-                        }); setIsModalOpen(true);
+                    <button onClick={async () => {
+                        try {
+                            const freshOrg = await organizationsApi.getById(row.id);
+                            setEditingOrg(freshOrg);
+                            setFormData({
+                                name: freshOrg.name || '',
+                                rnc: freshOrg.rnc || freshOrg.nit || '', // Backward compatibility
+                                address: freshOrg.address || 'oficina',
+                                phone: freshOrg.phone || '',
+                                email: freshOrg.email || '',
+                                hasPuntoDeControl: freshOrg.hasPuntoDeControl ?? true
+                            });
+                            setIsModalOpen(true);
+                        } catch (err) {
+                            alert('Error al cargar datos actualizados de la organización: ' + err.message);
+                        }
                     }} className="p-2 text-slate-400 hover:text-primary transition-colors"><Edit2 size={16} /></button>
                     <button onClick={async () => { if (confirm('¿Eliminar esta organización?')) { await organizationsApi.delete(row.id); refreshOrgs(); } }} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
                 </div>

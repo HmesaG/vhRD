@@ -111,10 +111,15 @@ const Badges = () => {
         } catch (err) { alert('Error: ' + err.message); }
     };
 
-    const handleEdit = (badge) => {
-        setEditNumber(badge.number);
-        setEditingId(badge.id);
-        setIsEditing(true);
+    const handleEdit = async (badge) => {
+        try {
+            const freshBadge = await badgesApi.getById(badge.id);
+            setEditNumber(freshBadge.number);
+            setEditingId(freshBadge.id);
+            setIsEditing(true);
+        } catch (err) {
+            alert('Error al cargar datos actualizados del carnet: ' + err.message);
+        }
     };
 
     const handleShowQR = (value) => {

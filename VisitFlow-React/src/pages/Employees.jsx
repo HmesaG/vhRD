@@ -74,16 +74,21 @@ const Employees = () => {
         } catch (err) { alert('Error: ' + err.message); }
     };
 
-    const handleEdit = (emp) => {
-        setFormData({
-            name: emp.name,
-            area: emp.area,
-            email: emp.email || '',
-            whatsapp: emp.whatsapp || ''
-        });
-        setIsEditing(true);
-        setEditingId(emp.id);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    const handleEdit = async (emp) => {
+        try {
+            const freshEmp = await employeesApi.getById(emp.id);
+            setFormData({
+                name: freshEmp.name,
+                area: freshEmp.area,
+                email: freshEmp.email || '',
+                whatsapp: freshEmp.whatsapp || ''
+            });
+            setIsEditing(true);
+            setEditingId(freshEmp.id);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (err) {
+            alert('Error al cargar datos actualizados del empleado: ' + err.message);
+        }
     };
 
     const cancelEdit = () => {

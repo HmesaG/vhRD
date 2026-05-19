@@ -1,5 +1,13 @@
 import pool from '../config/database.js';
 
+// Convert snake_case DB columns → camelCase for consistent frontend API contract
+const snakeToCamel = (str) => str.replace(/_([a-z])/g, (_, l) => l.toUpperCase());
+const normalizeRow = (row) => {
+    const out = {};
+    for (const [key, val] of Object.entries(row)) out[snakeToCamel(key)] = val;
+    return out;
+};
+
 /**
  * Generic CRUD controller factory for simple tenant-scoped entities.
  * Works for: visitor_companies, visit_reasons, badges, employees, areas
@@ -30,7 +38,7 @@ export const createCrudController = (tableName, options = {}) => {
                 }
 
                 const result = await pool.query(query, params);
-                res.json(result.rows);
+                res.json(result.rows.map(normalizeRow));
             } catch (err) {
                 console.error(`${tableName} getAll error:`, err);
                 res.status(500).json({ error: `Error al obtener registros` });
@@ -41,7 +49,7 @@ export const createCrudController = (tableName, options = {}) => {
             try {
                 const result = await pool.query(`SELECT ${returnFields} FROM ${tableName} WHERE id = $1`, [req.params.id]);
                 if (result.rows.length === 0) return res.status(404).json({ error: 'Registro no encontrado' });
-                res.json(result.rows[0]);
+                res.json(normalizeRow(result.rows[0]));
             } catch (err) {
                 console.error(`${tableName} getById error:`, err);
                 res.status(500).json({ error: 'Error al obtener registro' });
@@ -75,7 +83,7 @@ export const createCrudController = (tableName, options = {}) => {
                     values
                 );
 
-                res.status(201).json(result.rows[0]);
+                res.status(201).json(normalizeRow(result.rows[0]));
             } catch (err) {
                 console.error(`${tableName} create error:`, err);
                 res.status(500).json({ error: 'Error al crear registro' });
@@ -108,7 +116,7 @@ export const createCrudController = (tableName, options = {}) => {
                 );
 
                 if (result.rows.length === 0) return res.status(404).json({ error: 'Registro no encontrado' });
-                res.json(result.rows[0]);
+                res.json(normalizeRow(result.rows[0]));
             } catch (err) {
                 console.error(`${tableName} update error:`, err);
                 res.status(500).json({ error: 'Error al actualizar registro' });
@@ -156,20 +164,24 @@ export const createCrudController = (tableName, options = {}) => {
 export const companiesController = createCrudController('visitor_companies', {
     orderBy: 'name ASC',
     insertFields: [
-        { name: 'name', required: true }
+        { name: 'name', required: true },
+        { name: 'rnc' }
     ],
     updateFields: [
-        { name: 'name' }
+        { name: 'name' },
+        { name: 'rnc' }
     ]
 });
 
 export const reasonsController = createCrudController('visit_reasons', {
     orderBy: 'label ASC',
     insertFields: [
-        { name: 'label', required: true }
+        { name: 'label', required: true },
+        { name: 'requiresBadge', dbColumn: 'requires_badge' }
     ],
     updateFields: [
-        { name: 'label' }
+        { name: 'label' },
+        { name: 'requiresBadge', dbColumn: 'requires_badge' }
     ]
 });
 

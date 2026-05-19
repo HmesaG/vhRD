@@ -179,6 +179,9 @@ export const companiesApi = {
     getAll: (companyId) =>
         request(`/companies${companyId ? `?companyId=${companyId}` : ''}`),
 
+    getById: (id) =>
+        request(`/companies/${id}`),
+
     create: (data) =>
         request('/companies', { method: 'POST', body: JSON.stringify(data) }),
 
@@ -199,6 +202,9 @@ export const reasonsApi = {
     getAll: (companyId) =>
         request(`/reasons${companyId ? `?companyId=${companyId}` : ''}`),
 
+    getById: (id) =>
+        request(`/reasons/${id}`),
+
     create: (data) =>
         request('/reasons', { method: 'POST', body: JSON.stringify(data) }),
 
@@ -215,6 +221,9 @@ export const reasonsApi = {
 export const badgesApi = {
     getAll: (companyId) =>
         request(`/badges${companyId ? `?companyId=${companyId}` : ''}`),
+
+    getById: (id) =>
+        request(`/badges/${id}`),
 
     create: (data) =>
         request('/badges', { method: 'POST', body: JSON.stringify(data) }),
@@ -236,6 +245,9 @@ export const employeesApi = {
     getAll: (companyId) =>
         request(`/employees${companyId ? `?companyId=${companyId}` : ''}`),
 
+    getById: (id) =>
+        request(`/employees/${id}`),
+
     create: (data) =>
         request('/employees', { method: 'POST', body: JSON.stringify(data) }),
 
@@ -255,6 +267,9 @@ export const employeesApi = {
 export const areasApi = {
     getAll: (companyId) =>
         request(`/areas${companyId ? `?companyId=${companyId}` : ''}`),
+
+    getById: (id) =>
+        request(`/areas/${id}`),
 
     create: (data) =>
         request('/areas', { method: 'POST', body: JSON.stringify(data) }),

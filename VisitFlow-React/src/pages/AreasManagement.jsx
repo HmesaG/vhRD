@@ -53,6 +53,17 @@ const AreasManagement = () => {
         }
     };
 
+    const handleEdit = async (area) => {
+        try {
+            const freshArea = await areasApi.getById(area.id);
+            setEditingArea(freshArea);
+            setFormData({ name: freshArea.name, level: freshArea.level });
+            setIsModalOpen(true);
+        } catch (err) {
+            alert('Error al cargar datos actualizados del área: ' + err.message);
+        }
+    };
+
     const handleDelete = async (id) => {
         if (confirm('¿Eliminar esta área? Esto podría afectar los registros de visitas activos.')) {
             try {
@@ -150,11 +161,7 @@ const AreasManagement = () => {
             render: (row) => (
                 <div className="flex justify-end gap-1">
                     <button
-                        onClick={() => {
-                            setEditingArea(row);
-                            setFormData({ name: row.name, level: row.level });
-                            setIsModalOpen(true);
-                        }}
+                        onClick={() => handleEdit(row)}
                         className="p-2 text-slate-400 hover:text-navy hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
                     >
                         <Edit2 size={16} />

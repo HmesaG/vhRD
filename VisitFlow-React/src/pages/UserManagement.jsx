@@ -154,16 +154,21 @@ const UserManagement = () => {
             className: 'text-right',
             render: (row) => (
                 <div className="flex justify-end gap-1">
-                    <button onClick={() => {
-                        setEditingUser(row);
-                        setFormData({
-                            email: row.email,
-                            password: '',
-                            role: row.role,
-                            companyId: row.companyId,
-                            assignedAreas: row.assignedAreas || []
-                        });
-                        setIsModalOpen(true);
+                    <button onClick={async () => {
+                        try {
+                            const freshUser = await usersApi.getById(row.id);
+                            setEditingUser(freshUser);
+                            setFormData({
+                                email: freshUser.email,
+                                password: '',
+                                role: freshUser.role,
+                                companyId: freshUser.companyId,
+                                assignedAreas: freshUser.assignedAreas || []
+                            });
+                            setIsModalOpen(true);
+                        } catch (err) {
+                            alert('Error al cargar datos actualizados del usuario: ' + err.message);
+                        }
                     }} className="p-2 text-slate-400 hover:text-primary transition-colors"><Edit2 size={16} /></button>
                     <button onClick={async () => { if (confirm('¿Eliminar permisos?')) { await usersApi.delete(row.id); refreshUsers(); } }} className="p-2 text-slate-300 hover:text-red-500 transition-colors"><Trash2 size={16} /></button>
                 </div>

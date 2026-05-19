@@ -104,11 +104,16 @@ const Companies = () => {
         } catch (err) { alert('Error: ' + err.message); }
     };
 
-    const handleEdit = (company) => {
-        setFormData({ rnc: company.rnc || '', name: company.name });
-        setEditingId(company.id);
-        setIsEditing(true);
-        setIsModalOpen(true);
+    const handleEdit = async (company) => {
+        try {
+            const freshCompany = await companiesApi.getById(company.id);
+            setFormData({ rnc: freshCompany.rnc || '', name: freshCompany.name });
+            setEditingId(freshCompany.id);
+            setIsEditing(true);
+            setIsModalOpen(true);
+        } catch (err) {
+            alert('Error al cargar datos actualizados de la empresa: ' + err.message);
+        }
     };
 
     const closeModal = () => {

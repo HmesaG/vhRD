@@ -17,6 +17,7 @@ CREATE TABLE organizations (
     phone       VARCHAR(50),
     email       VARCHAR(200),
     logo_url    TEXT,
+    has_punto_de_control BOOLEAN NOT NULL DEFAULT TRUE,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

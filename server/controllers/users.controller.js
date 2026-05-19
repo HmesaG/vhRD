@@ -1,6 +1,17 @@
 import bcrypt from 'bcryptjs';
 import pool from '../config/database.js';
 
+// Normalize DB row (snake_case) → frontend (camelCase) for consistent API contract
+const normalizeUser = (u) => ({
+    id: u.id,
+    email: u.email,
+    role: u.role,
+    companyId: u.company_id,
+    assignedAreas: u.assigned_areas || [],
+    createdAt: u.created_at,
+    updatedAt: u.updated_at,
+});
+
 export const getAll = async (req, res) => {
     try {
         let query, params;
@@ -12,7 +23,7 @@ export const getAll = async (req, res) => {
             params = [req.user.company_id];
         }
         const result = await pool.query(query, params);
-        res.json(result.rows);
+        res.json(result.rows.map(normalizeUser));
     } catch (err) {
         console.error('Users getAll error:', err);
         res.status(500).json({ error: 'Error al obtener usuarios' });
@@ -26,7 +37,7 @@ export const getById = async (req, res) => {
             [req.params.id]
         );
         if (result.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
-        res.json(result.rows[0]);
+        res.json(normalizeUser(result.rows[0]));
     } catch (err) {
         console.error('Users getById error:', err);
         res.status(500).json({ error: 'Error al obtener usuario' });
@@ -55,7 +66,7 @@ export const create = async (req, res) => {
             [email.toLowerCase().trim(), hash, role || 'recepcion', finalCompanyId, JSON.stringify(assignedAreas || [])]
         );
 
-        res.status(201).json(result.rows[0]);
+        res.status(201).json(normalizeUser(result.rows[0]));
     } catch (err) {
         console.error('Users create error:', err);
         res.status(500).json({ error: 'Error al crear usuario' });
@@ -82,7 +93,7 @@ export const update = async (req, res) => {
 
         const result = await pool.query(query, params);
         if (result.rows.length === 0) return res.status(404).json({ error: 'Usuario no encontrado' });
-        res.json(result.rows[0]);
+        res.json(normalizeUser(result.rows[0]));
     } catch (err) {
         console.error('Users update error:', err);
         res.status(500).json({ error: 'Error al actualizar usuario' });

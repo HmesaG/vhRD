@@ -37,21 +37,26 @@ const VisitReasons = () => {
 
         try {
             if (isEditing) {
-                await reasonsApi.update(editingId, { label, requires_badge: formData.requiresBadge });
+                await reasonsApi.update(editingId, { label, requiresBadge: formData.requiresBadge });
                 cancelEdit();
             } else {
-                await reasonsApi.create({ label, requires_badge: formData.requiresBadge, company_id: companyId });
+                await reasonsApi.create({ label, requiresBadge: formData.requiresBadge, company_id: companyId });
                 setFormData({ label: '', requiresBadge: true });
             }
             refreshReasons();
         } catch (err) { alert('Error: ' + err.message); }
     };
 
-    const handleEdit = (reason) => {
-        setFormData({ label: reason.label, requiresBadge: reason.requiresBadge });
-        setIsEditing(true);
-        setEditingId(reason.id);
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+    const handleEdit = async (reason) => {
+        try {
+            const freshReason = await reasonsApi.getById(reason.id);
+            setFormData({ label: freshReason.label, requiresBadge: freshReason.requiresBadge });
+            setIsEditing(true);
+            setEditingId(freshReason.id);
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        } catch (err) {
+            alert('Error al cargar datos actualizados del motivo: ' + err.message);
+        }
     };
 
     const cancelEdit = () => {
