@@ -40,6 +40,33 @@ const VisitModal = ({ isOpen, onClose }) => {
     const [isCameraActive, setIsCameraActive] = useState(false);
     const html5QrCodeRef = useRef(null);
 
+    // Parser for new JCE cédula QR — logs raw text so we can inspect the format
+    const parseCedulaQR = (rawText) => {
+        console.log('[QR RAW]', rawText);
+
+        // New cédula QR uses pipe | as separator
+        // Common format: "CEDULA|NOMBRE|APELLIDO1|APELLIDO2|BIRTHDATE|SEX|..."
+        const parts = rawText.split(/[|,;]/).map(p => p.trim()).filter(Boolean);
+
+        if (parts.length >= 2) {
+            // Find the 11-digit cedula number
+            const cedula = parts.find(p => /^\d{11}$/.test(p));
+
+            // Name fields are non-numeric strings with letters only
+            const nameFields = parts.filter(p =>
+                /^[A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑa-záéíóúñ\s\-']+$/.test(p) && p.length > 1
+            );
+            const fullName = nameFields.slice(0, 3).join(' ').trim();
+
+            console.log('[QR PARSED]', { cedula, fullName, parts });
+            return { cedula: cedula || rawText.replace(/\D/g, ''), fullName };
+        }
+
+        // Fallback: assume it's just a cedula number (old barcode)
+        const digitsOnly = rawText.replace(/\D/g, '');
+        return { cedula: digitsOnly, fullName: '' };
+    };
+
     const startScanner = async () => {
         try {
             setIsCameraActive(true);
@@ -57,11 +84,17 @@ const VisitModal = ({ isOpen, onClose }) => {
                     await html5QrCode.start(
                         { facingMode: "environment" },
                         { fps: 15, qrbox: (viewfinderWidth, viewfinderHeight) => {
-                            const width = Math.min(viewfinderWidth * 0.9, 400);
-                            return { width: width, height: 150 };
+                            // Square box — works better for the square JCE cédula QR
+                            const size = Math.min(viewfinderWidth, viewfinderHeight) * 0.85;
+                            return { width: size, height: size };
                         } },
                         (decodedText) => {
-                            setFormData(prev => ({ ...prev, document_id: decodedText }));
+                            const { cedula, fullName } = parseCedulaQR(decodedText);
+                            setFormData(prev => ({
+                                ...prev,
+                                document_id: cedula,
+                                ...(fullName ? { full_name: toTitleCase(fullName) } : {})
+                            }));
                             stopScanner();
                         },
                         () => {}
