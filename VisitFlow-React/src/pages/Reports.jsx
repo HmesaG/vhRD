@@ -3,6 +3,8 @@ import { visitsApi, areasApi } from '../services/api';
 import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
 import DataTable from '../components/DataTable';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
 import {
     Chart as ChartJS,
     CategoryScale,
@@ -243,6 +245,135 @@ const Reports = () => {
         link.click();
     };
 
+    const exportPDF = () => {
+        const doc = new jsPDF({
+            orientation: 'landscape',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        // Add brand-aligned dark navy header bar
+        doc.setFillColor(0, 56, 101); // #003865 Navy
+        doc.rect(0, 0, 297, 30, 'F');
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(18);
+        doc.setFont('helvetica', 'bold');
+        doc.text('REPORTE DE CONTROL DE VISITAS - VISITAS HUB RD', 15, 18);
+
+        // Subtitle with period info
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        doc.text(`Período: Últimos ${timeFilter} días | Generado el: ${new Date().toLocaleString()}`, 15, 25);
+
+        // Stats summary cards
+        // Accent Orange for total visits, clean slates for others
+        doc.setFillColor(245, 130, 32); // #f58220 Accent Orange
+        doc.rect(15, 38, 60, 20, 'F');
+        doc.setFillColor(241, 245, 249); // slate-100
+        doc.rect(80, 38, 60, 20, 'F');
+        doc.rect(145, 38, 60, 20, 'F');
+        doc.rect(210, 38, 72, 20, 'F');
+
+        // Total Visits Card text
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text('TOTAL VISITAS', 20, 44);
+        doc.setFontSize(14);
+        doc.text(String(stats.total), 20, 52);
+
+        // Avg Time Card text
+        doc.setTextColor(51, 65, 85); // slate-700
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text('TIEMPO PROMEDIO', 85, 44);
+        doc.setFontSize(14);
+        doc.text(String(stats.avgTime), 85, 52);
+
+        // Active Visits Card text
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text('VISITAS ACTIVAS', 150, 44);
+        doc.setFontSize(14);
+        doc.text(String(stats.active), 150, 52);
+
+        // Peak Day Card text
+        doc.setFontSize(8);
+        doc.setFont('helvetica', 'bold');
+        doc.text('DÍA PICO', 215, 44);
+        doc.setFontSize(14);
+        doc.text(String(stats.peakDay), 215, 52);
+
+        // Detail table title
+        doc.setTextColor(0, 56, 101);
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.text('LISTADO DETALLADO DE VISITAS', 15, 68);
+
+        // Build table data
+        const headers = csvHeaders;
+        const rows = visits.map(v => [
+            v.full_name,
+            v.document_id || 'N/A',
+            v.company,
+            v.employee,
+            v.reason,
+            areas.find(a => a.id === v.areaId)?.name || 'N/A',
+            parseDate(v.check_in)?.toLocaleString() || '',
+            parseDate(v.check_out)?.toLocaleString() || 'N/A',
+            v.status === 'activo' ? 'ACTIVO' : 'COMPLETADO'
+        ]);
+
+        doc.autoTable({
+            startY: 72,
+            head: [headers],
+            body: rows,
+            theme: 'grid',
+            headStyles: {
+                fillColor: [0, 56, 101],
+                textColor: [255, 255, 255],
+                fontSize: 8,
+                fontStyle: 'bold',
+                halign: 'left'
+            },
+            bodyStyles: {
+                fontSize: 8,
+                textColor: [51, 65, 85]
+            },
+            alternateRowStyles: {
+                fillColor: [248, 250, 252] // slate-50
+            },
+            columnStyles: {
+                0: { cellWidth: 35 }, // Name
+                1: { cellWidth: 22 }, // Document
+                2: { cellWidth: 30 }, // Company
+                3: { cellWidth: 35 }, // Employee / Resident
+                4: { cellWidth: 25 }, // Reason
+                5: { cellWidth: 25 }, // Area
+                6: { cellWidth: 38 }, // Check-in
+                7: { cellWidth: 38 }, // Check-out
+                8: { cellWidth: 20 }  // Status
+            },
+            styles: {
+                cellPadding: 2,
+                overflow: 'linebreak'
+            },
+            margin: { left: 15, right: 15 }
+        });
+
+        // Add page numbers
+        const pageCount = doc.internal.getNumberOfPages();
+        for (let i = 1; i <= pageCount; i++) {
+            doc.setPage(i);
+            doc.setFontSize(8);
+            doc.setTextColor(148, 163, 184); // slate-400
+            doc.text(`Página ${i} de ${pageCount}`, 260, 200);
+        }
+
+        doc.save(`Reporte_Visitas_${new Date().toISOString().split('T')[0]}.pdf`);
+    };
+
     const rankingColumns = [
         {
             header: 'Empresa Visitante',
@@ -302,7 +433,7 @@ const Reports = () => {
                         <button onClick={exportCSV} className="flex items-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-4 py-2 rounded-xl text-xs font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 transition-all">
                             <Download size={14} /> Exportar CSV
                         </button>
-                        <button onClick={() => window.print()} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all">
+                        <button onClick={exportPDF} className="flex items-center gap-2 bg-primary text-white px-4 py-2 rounded-xl text-xs font-bold shadow-lg shadow-primary/20 hover:brightness-110 active:scale-95 transition-all">
                             <Printer size={14} /> Imprimir PDF
                         </button>
                     </div>
