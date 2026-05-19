@@ -139,6 +139,21 @@ CREATE INDEX idx_visits_checkin ON visits(check_in DESC);
 CREATE INDEX idx_visits_org_checkin ON visits(company_id, check_in DESC);
 
 -- ============================================================
+-- 9. CHECKPOINTS DE VISITA (Ruta Multi-punto)
+-- ============================================================
+CREATE TABLE visit_checkpoints (
+    id              UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    visit_id        UUID NOT NULL REFERENCES visits(id) ON DELETE CASCADE,
+    area_id         UUID REFERENCES areas(id) ON DELETE SET NULL,
+    status          VARCHAR(50) NOT NULL,
+    notes           TEXT,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_visit_checkpoints_visit ON visit_checkpoints(visit_id);
+CREATE INDEX idx_visit_checkpoints_created ON visit_checkpoints(created_at ASC);
+
+-- ============================================================
 -- Función para actualizar updated_at automáticamente
 -- ============================================================
 CREATE OR REPLACE FUNCTION update_updated_at_column()

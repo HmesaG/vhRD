@@ -135,6 +135,12 @@ export const visitsApi = {
 
     delete: (id) =>
         request(`/visits/${id}`, { method: 'DELETE' }),
+
+    getCheckpoints: (visitId) =>
+        request(`/visits/${visitId}/checkpoints`),
+
+    addCheckpoint: (visitId, checkpointData) =>
+        request(`/visits/${visitId}/checkpoints`, { method: 'POST', body: JSON.stringify(checkpointData) }),
 };
 
 // ============================================================

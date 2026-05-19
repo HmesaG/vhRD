@@ -1,15 +1,25 @@
 import React, { useEffect, useState } from 'react';
 import { Cpu, Database, Zap, ShieldCheck } from 'lucide-react';
 
-const SplashScreen = () => {
+const SplashScreen = ({ onComplete }) => {
     const [progress, setProgress] = useState(0);
 
     useEffect(() => {
         const timer = setInterval(() => {
-            setProgress(prev => (prev < 95 ? prev + (Math.random() * 15) : prev));
-        }, 150);
+            setProgress(prev => {
+                if (prev >= 100) {
+                    clearInterval(timer);
+                    setTimeout(() => {
+                        if (onComplete) onComplete();
+                    }, 250);
+                    return 100;
+                }
+                const next = prev + (Math.random() * 20);
+                return next >= 100 ? 100 : next;
+            });
+        }, 120);
         return () => clearInterval(timer);
-    }, []);
+    }, [onComplete]);
 
     return (
         <div className="fixed inset-0 z-[10000] bg-slate-950 flex flex-col items-center justify-center p-6 overflow-hidden">

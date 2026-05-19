@@ -85,7 +85,20 @@ export const create = async (req, res) => {
             ]
         );
 
-        res.status(201).json(mapVisitRow(result.rows[0]));
+        const newVisit = result.rows[0];
+
+        // Automatically create the initial checkpoint
+        try {
+            await pool.query(
+                `INSERT INTO visit_checkpoints (visit_id, area_id, status, notes)
+                 VALUES ($1, $2, $3, $4)`,
+                [newVisit.id, newVisit.area_id || null, 'Ingresado', 'Registro inicial de visita.']
+            );
+        } catch (cpErr) {
+            console.error('Error adding initial checkpoint:', cpErr);
+        }
+
+        res.status(201).json(mapVisitRow(newVisit));
     } catch (err) {
         console.error('Visits create error:', err);
         res.status(500).json({ error: 'Error al crear visita' });
@@ -137,7 +150,22 @@ export const update = async (req, res) => {
             return res.status(404).json({ error: 'Visita no encontrada' });
         }
 
-        res.json(mapVisitRow(result.rows[0]));
+        const updatedVisit = result.rows[0];
+
+        // Automatically create checkpoint on exit
+        if (updates.check_out === true || updates.status === 'Salida') {
+            try {
+                await pool.query(
+                    `INSERT INTO visit_checkpoints (visit_id, area_id, status, notes)
+                     VALUES ($1, $2, $3, $4)`,
+                    [id, updatedVisit.area_id || null, 'Salida', 'Salida de las instalaciones.']
+                );
+            } catch (cpErr) {
+                console.error('Error adding exit checkpoint:', cpErr);
+            }
+        }
+
+        res.json(mapVisitRow(updatedVisit));
     } catch (err) {
         console.error('Visits update error:', err);
         res.status(500).json({ error: 'Error al actualizar visita' });
@@ -154,5 +182,55 @@ export const remove = async (req, res) => {
     } catch (err) {
         console.error('Visits remove error:', err);
         res.status(500).json({ error: 'Error al eliminar visita' });
+    }
+};
+
+// ============================================================
+// CHECKPOINTS METHODS (Ruta Multi-punto)
+// ============================================================
+
+export const getCheckpoints = async (req, res) => {
+    try {
+        const { id } = req.params; // visit_id
+        const result = await pool.query(
+            `SELECT c.*, a.name as area_name, a.level as area_level 
+             FROM visit_checkpoints c
+             LEFT JOIN areas a ON c.area_id = a.id
+             WHERE c.visit_id = $1
+             ORDER BY c.created_at ASC`,
+            [id]
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error('getCheckpoints error:', err);
+        res.status(500).json({ error: 'Error al obtener checkpoints' });
+    }
+};
+
+export const addCheckpoint = async (req, res) => {
+    try {
+        const { id } = req.params; // visit_id
+        const { areaId, status, notes } = req.body;
+
+        const result = await pool.query(
+            `INSERT INTO visit_checkpoints (visit_id, area_id, status, notes)
+             VALUES ($1, $2, $3, $4)
+             RETURNING *`,
+            [id, areaId || null, status || 'En Tránsito', notes || '']
+        );
+
+        const checkpoint = result.rows[0];
+        if (checkpoint.area_id) {
+            const areaRes = await pool.query('SELECT name, level FROM areas WHERE id = $1', [checkpoint.area_id]);
+            if (areaRes.rows.length > 0) {
+                checkpoint.area_name = areaRes.rows[0].name;
+                checkpoint.area_level = areaRes.rows[0].level;
+            }
+        }
+
+        res.status(201).json(checkpoint);
+    } catch (err) {
+        console.error('addCheckpoint error:', err);
+        res.status(500).json({ error: 'Error al agregar checkpoint' });
     }
 };

@@ -18,9 +18,16 @@ import { ToastProvider } from './context/ToastContext';
 import { ConfirmProvider } from './context/ConfirmContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Login from './pages/Login';
+import SplashScreen from './components/SplashScreen';
 // import TestPage from './pages/TestPage'; // Solo para dev/debug
 
 function App() {
+  const [showSplash, setShowSplash] = React.useState(true);
+
+  if (showSplash) {
+    return <SplashScreen onComplete={() => setShowSplash(false)} />;
+  }
+
   return (
     <ToastProvider>
     <ConfirmProvider>

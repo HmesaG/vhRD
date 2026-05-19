@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/ToastContext';
 import { visitsApi, areasApi, usersApi } from '../services/api';
 import { usePolling } from '../hooks/usePolling';
 import Layout from '../components/Layout';
@@ -8,6 +9,7 @@ import { Html5Qrcode } from 'html5-qrcode';
 
 const SecurityPanel = () => {
     const { companyId, role, user } = useAuth();
+    const toast = useToast();
     const [badgeInput, setBadgeInput] = useState('');
     const [scannedVisit, setScannedVisit] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -18,6 +20,11 @@ const SecurityPanel = () => {
     const [isScanning, setIsScanning] = useState(false);
     const html5QrCodeRef = React.useRef(null);
     const [secondsLeft, setSecondsLeft] = useState(10);
+
+    const [checkpointArea, setCheckpointArea] = useState('');
+    const [checkpointStatus, setCheckpointStatus] = useState('En Tránsito');
+    const [checkpointNotes, setCheckpointNotes] = useState('');
+    const [loadingCheckpoint, setLoadingCheckpoint] = useState(false);
 
     // Auto-refresh timer when a visit is scanned
     useEffect(() => {
@@ -69,6 +76,49 @@ const SecurityPanel = () => {
         fetchedAreas.forEach(a => { areaMap[a.id] = a; });
         setAreas(areaMap);
     }, [fetchedAreas]);
+
+    // Pre-fill checkpoint default values on scan
+    useEffect(() => {
+        if (scannedVisit) {
+            if (userAssignedAreas && userAssignedAreas.length > 0) {
+                setCheckpointArea(userAssignedAreas[0]);
+            } else if (scannedVisit.areaId) {
+                setCheckpointArea(scannedVisit.areaId);
+            } else {
+                setCheckpointArea('');
+            }
+            setCheckpointStatus('En Tránsito');
+            setCheckpointNotes('');
+        }
+    }, [scannedVisit, userAssignedAreas]);
+
+    const handleRegisterCheckpoint = async (e) => {
+        if (e) e.preventDefault();
+        if (!scannedVisit || !checkpointArea) {
+            toast.error('Por favor, selecciona un área para el checkpoint.');
+            return;
+        }
+
+        setLoadingCheckpoint(true);
+        try {
+            await visitsApi.addCheckpoint(scannedVisit.id, {
+                areaId: checkpointArea,
+                status: checkpointStatus,
+                notes: checkpointNotes.trim()
+            });
+            toast.success('¡Checkpoint registrado con éxito!');
+            setCheckpointNotes('');
+            
+            // Refresh scannedVisit's data to reflect the new state
+            const updated = await visitsApi.getById(scannedVisit.id);
+            setScannedVisit(updated);
+        } catch (err) {
+            console.error('Error registering checkpoint:', err);
+            toast.error('Error al registrar checkpoint: ' + err.message);
+        } finally {
+            setLoadingCheckpoint(false);
+        }
+    };
 
     const handleSearch = async (e) => {
         if (e) e.preventDefault();
@@ -428,6 +478,85 @@ const SecurityPanel = () => {
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {/* Checkpoint Section */}
+                                        {!scannedVisit.check_out && (
+                                            <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 p-4 sm:p-5 rounded-2xl space-y-4">
+                                                <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-850 pb-2">
+                                                    <MapPin size={16} className="text-primary" />
+                                                    <span className="text-xs font-black uppercase tracking-wider text-slate-800 dark:text-white">Registrar Checkpoint Intermedio</span>
+                                                </div>
+                                                
+                                                <form onSubmit={handleRegisterCheckpoint} className="space-y-3">
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                                        {/* Area Selection */}
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Ubicación / Área</label>
+                                                            <select
+                                                                value={checkpointArea}
+                                                                onChange={(e) => setCheckpointArea(e.target.value)}
+                                                                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold focus:ring-2 focus:ring-primary text-slate-700 dark:text-slate-200"
+                                                            >
+                                                                <option value="" disabled>Seleccione Área...</option>
+                                                                {Object.values(areas).map(a => {
+                                                                    const isAssigned = userAssignedAreas.includes(a.id);
+                                                                    return (
+                                                                        <option key={a.id} value={a.id}>
+                                                                            {a.level} — {a.name} {isAssigned ? '★ (Asignada)' : ''}
+                                                                        </option>
+                                                                    );
+                                                                })}
+                                                            </select>
+                                                        </div>
+
+                                                        {/* Status Selection */}
+                                                        <div className="space-y-1">
+                                                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Estado de Tránsito</label>
+                                                            <select
+                                                                value={checkpointStatus}
+                                                                onChange={(e) => setCheckpointStatus(e.target.value)}
+                                                                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs font-semibold focus:ring-2 focus:ring-primary text-slate-700 dark:text-slate-200"
+                                                            >
+                                                                <option value="En Tránsito">En Tránsito</option>
+                                                                <option value="Chequeo de Ruta">Chequeo de Ruta</option>
+                                                                <option value="Inspección">Inspección de Seguridad</option>
+                                                                <option value="Llegada a Destino">Llegada a Destino</option>
+                                                                <option value="En Espera">En Espera</option>
+                                                                <option value="Retorno">Retorno / Salida Parcial</option>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Notes */}
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Notas / Observaciones</label>
+                                                        <input
+                                                            type="text"
+                                                            placeholder="Ej. Ingreso por ascensor, portando laptop, etc."
+                                                            value={checkpointNotes}
+                                                            onChange={(e) => setCheckpointNotes(e.target.value)}
+                                                            className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2.5 text-xs focus:ring-2 focus:ring-primary text-slate-700 dark:text-slate-200"
+                                                        />
+                                                    </div>
+
+                                                    {/* Submit Button */}
+                                                    <button
+                                                        type="submit"
+                                                        disabled={loadingCheckpoint || !checkpointArea}
+                                                        className="w-full bg-gradient-to-r from-primary to-orange-600 hover:brightness-110 disabled:opacity-50 text-white font-bold py-2.5 px-4 rounded-xl text-xs flex items-center justify-center gap-2 shadow-md shadow-primary/10 transition-all"
+                                                    >
+                                                        {loadingCheckpoint ? (
+                                                            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                                        ) : (
+                                                            <>
+                                                                <MapPin size={12} />
+                                                                Registrar Checkpoint / Paso
+                                                            </>
+                                                        )}
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        )}
 
                                         <div className="pt-2">
                                             <button

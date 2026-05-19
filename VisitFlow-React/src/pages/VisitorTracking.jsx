@@ -97,36 +97,50 @@ const StatCard = ({ icon, label, value, sub, color = 'primary' }) => {
     );
 };
 
-const TimelineNode = ({ type, time, label, area, isLast, isActive }) => {
+const TimelineNode = ({ type, time, label, area, isLast, isActive, notes }) => {
     const isEntry = type === 'entry';
+    const isExit = type === 'exit';
+    
+    let circleStyles = '';
+    let icon = null;
+    
+    if (isEntry) {
+        circleStyles = 'bg-emerald-500 border-emerald-400 text-white shadow-md shadow-emerald-500/30';
+        icon = <LogIn size={14} />;
+    } else if (isExit) {
+        circleStyles = 'bg-slate-500 border-slate-400 text-white shadow-md shadow-slate-500/30';
+        icon = <LogOut size={14} />;
+    } else if (isActive) {
+        circleStyles = 'bg-orange-500 border-orange-400 text-white shadow-md shadow-orange-500/30 animate-pulse';
+        icon = <Circle size={10} className="fill-current" />;
+    } else {
+        circleStyles = 'bg-indigo-500 border-indigo-400 text-white shadow-md shadow-indigo-500/20';
+        icon = <MapPin size={12} />;
+    }
+
     return (
         <div className="flex gap-3 items-start">
             <div className="flex flex-col items-center shrink-0">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 z-10 transition-all
-                    ${isEntry
-                        ? 'bg-emerald-500 border-emerald-400 text-white shadow-md shadow-emerald-500/30'
-                        : isActive
-                            ? 'bg-orange-500 border-orange-400 text-white shadow-md shadow-orange-500/30 animate-pulse'
-                            : 'bg-slate-200 dark:bg-slate-700 border-slate-300 dark:border-slate-600 text-slate-500'
-                    }`}>
-                    {isEntry
-                        ? <LogIn size={14} />
-                        : isActive
-                            ? <Circle size={10} className="fill-current" />
-                            : <LogOut size={14} />}
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 z-10 transition-all ${circleStyles}`}>
+                    {icon}
                 </div>
                 {!isLast && (
-                    <div className={`w-0.5 h-8 mt-1 ${isEntry
-                        ? 'bg-gradient-to-b from-emerald-400 to-slate-300 dark:to-slate-700'
-                        : 'bg-slate-200 dark:bg-slate-700'}`} />
+                    <div className={`w-0.5 h-8 mt-1 ${
+                        isEntry 
+                            ? 'bg-gradient-to-b from-emerald-400 to-indigo-500' 
+                            : isExit 
+                                ? 'bg-slate-300 dark:bg-slate-700' 
+                                : 'bg-gradient-to-b from-indigo-500 to-indigo-300 dark:to-slate-750'
+                    }`} />
                 )}
             </div>
             <div className="pb-5 min-w-0 flex-1">
                 <div className="flex items-center gap-2 flex-wrap">
                     <span className={`text-xs font-black uppercase tracking-wide
                         ${isEntry ? 'text-emerald-600 dark:text-emerald-400'
-                            : isActive ? 'text-orange-500'
-                                : 'text-slate-500'}`}>
+                            : isExit ? 'text-slate-500'
+                                : isActive ? 'text-orange-500'
+                                    : 'text-indigo-600 dark:text-indigo-400'}`}>
                         {label}
                     </span>
                     <span className="text-[10px] text-slate-400 font-mono bg-slate-100 dark:bg-slate-800 px-2 py-0.5 rounded-full">
@@ -139,6 +153,11 @@ const TimelineNode = ({ type, time, label, area, isLast, isActive }) => {
                         <span className="text-xs text-slate-500 truncate">{area}</span>
                     </div>
                 )}
+                {notes && (
+                    <p className="text-[11px] text-slate-400 italic mt-0.5 pl-3 border-l-2 border-slate-200 dark:border-slate-800">
+                        {notes}
+                    </p>
+                )}
             </div>
         </div>
     );
@@ -149,6 +168,35 @@ const VisitorCard = ({ visit, areas, isExpanded, onToggle }) => {
     const duration = formatDuration(visit.check_in, visit.check_out);
     const areaName = areas[visit.areaId]?.name || 'Área no especificada';
     const areaLevel = areas[visit.areaId]?.level || '---';
+
+    const [checkpoints, setCheckpoints] = useState([]);
+    const [loadingCheckpoints, setLoadingCheckpoints] = useState(false);
+
+    useEffect(() => {
+        if (!isExpanded) return;
+        
+        let active = true;
+        setLoadingCheckpoints(true);
+        
+        visitsApi.getCheckpoints(visit.id)
+            .then(data => {
+                if (active) {
+                    setCheckpoints(data || []);
+                }
+            })
+            .catch(err => {
+                console.error(`Error loading checkpoints for visit ${visit.id}:`, err);
+            })
+            .finally(() => {
+                if (active) {
+                    setLoadingCheckpoints(false);
+                }
+            });
+            
+        return () => {
+            active = false;
+        };
+    }, [isExpanded, visit.id, visit.status, visit.check_out]);
 
     return (
         <div className={`bg-white dark:bg-slate-900 border rounded-2xl overflow-hidden shadow-sm transition-all duration-300
@@ -212,32 +260,66 @@ const VisitorCard = ({ visit, areas, isExpanded, onToggle }) => {
                         <div>
                             <SectionTitle icon={<Route size={11} />} label="Recorrido del Visitante" />
                             <div className="pl-1 mt-3">
-                                <TimelineNode
-                                    type="entry"
-                                    time={formatTime(visit.check_in)}
-                                    label="Ingreso"
-                                    area={`${areaLevel} — ${areaName}`}
-                                    isLast={!visit.check_out}
-                                    isActive={false}
-                                />
-                                {!visit.check_out ? (
-                                    <TimelineNode
-                                        type="current"
-                                        time="Ahora"
-                                        label="En Planta"
-                                        area={`Transcurrido: ${duration}`}
-                                        isLast={true}
-                                        isActive={true}
-                                    />
+                                {loadingCheckpoints ? (
+                                    <div className="flex items-center gap-2 py-4 text-xs text-slate-500">
+                                        <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                                        <span>Cargando recorrido real...</span>
+                                    </div>
+                                ) : checkpoints.length > 0 ? (
+                                    checkpoints.map((cp, idx) => {
+                                        const isLast = idx === checkpoints.length - 1;
+                                        const isActive = !visit.check_out && isLast;
+                                        
+                                        let type = 'checkpoint';
+                                        if (cp.status === 'Ingresado' || cp.status === 'Ingreso') {
+                                            type = 'entry';
+                                        } else if (cp.status === 'Salida') {
+                                            type = 'exit';
+                                        }
+                                        
+                                        return (
+                                            <TimelineNode
+                                                key={cp.id || idx}
+                                                type={type}
+                                                time={formatTime(cp.created_at)}
+                                                label={cp.status}
+                                                area={cp.area_name ? `${cp.area_level ? cp.area_level + ' — ' : ''}${cp.area_name}` : null}
+                                                notes={cp.notes}
+                                                isLast={isLast}
+                                                isActive={isActive}
+                                            />
+                                        );
+                                    })
                                 ) : (
-                                    <TimelineNode
-                                        type="exit"
-                                        time={formatTime(visit.check_out)}
-                                        label="Salida"
-                                        area={`Duración: ${duration}`}
-                                        isLast={true}
-                                        isActive={false}
-                                    />
+                                    <>
+                                        <TimelineNode
+                                            type="entry"
+                                            time={formatTime(visit.check_in)}
+                                            label="Ingreso"
+                                            area={`${areaLevel} — ${areaName}`}
+                                            isLast={!visit.check_out}
+                                            isActive={false}
+                                        />
+                                        {!visit.check_out ? (
+                                            <TimelineNode
+                                                type="current"
+                                                time="Ahora"
+                                                label="En Planta"
+                                                area={`Transcurrido: ${duration}`}
+                                                isLast={true}
+                                                isActive={true}
+                                            />
+                                        ) : (
+                                            <TimelineNode
+                                                type="exit"
+                                                time={formatTime(visit.check_out)}
+                                                label="Salida"
+                                                area={`Duración: ${duration}`}
+                                                isLast={true}
+                                                isActive={false}
+                                            />
+                                        )}
+                                    </>
                                 )}
                             </div>
                         </div>
