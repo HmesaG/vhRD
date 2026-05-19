@@ -43,7 +43,7 @@ const SidebarContent = ({ companyData, role, location, handleLogout, user }) => 
         {
             title: 'INFORMACIÓN',
             items: [
-                { name: 'Acerca de', path: '/acerca', icon: 'info', roles: ['administrador', 'recepcion', 'seguridad', 'superadmin'] },
+                { name: 'Acerca de', path: '/acerca', icon: 'info', roles: ['administrador', 'recepcion', 'seguridad', 'superadmin', 'punto_de_control'] },
             ]
         }
     ];

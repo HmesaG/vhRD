@@ -12,7 +12,7 @@ export const login = async (req, res) => {
 
         // Find user
         const result = await pool.query(
-            'SELECT u.*, o.name as company_name, o.nit, o.address as company_address, o.phone as company_phone, o.email as company_email, o.logo_url FROM users u LEFT JOIN organizations o ON u.company_id = o.id WHERE u.email = $1',
+            'SELECT u.*, o.name as company_name, o.nit, o.address as company_address, o.phone as company_phone, o.email as company_email, o.logo_url, o.has_punto_de_control as has_punto_de_control FROM users u LEFT JOIN organizations o ON u.company_id = o.id WHERE u.email = $1',
             [email.toLowerCase().trim()]
         );
 
@@ -44,7 +44,8 @@ export const login = async (req, res) => {
             address: user.company_address,
             phone: user.company_phone,
             email: user.company_email,
-            logo_url: user.logo_url
+            logo_url: user.logo_url,
+            hasPuntoDeControl: user.has_punto_de_control
         } : null;
 
         res.json({
@@ -67,7 +68,7 @@ export const login = async (req, res) => {
 export const getMe = async (req, res) => {
     try {
         const result = await pool.query(
-            'SELECT u.id, u.email, u.role, u.company_id, u.assigned_areas, o.name as company_name, o.nit, o.address as company_address, o.phone as company_phone, o.email as company_email, o.logo_url FROM users u LEFT JOIN organizations o ON u.company_id = o.id WHERE u.id = $1',
+            'SELECT u.id, u.email, u.role, u.company_id, u.assigned_areas, o.name as company_name, o.nit, o.address as company_address, o.phone as company_phone, o.email as company_email, o.logo_url, o.has_punto_de_control as has_punto_de_control FROM users u LEFT JOIN organizations o ON u.company_id = o.id WHERE u.id = $1',
             [req.user.id]
         );
 
@@ -84,7 +85,8 @@ export const getMe = async (req, res) => {
             address: user.company_address,
             phone: user.company_phone,
             email: user.company_email,
-            logo_url: user.logo_url
+            logo_url: user.logo_url,
+            hasPuntoDeControl: user.has_punto_de_control
         } : null;
 
         res.json({

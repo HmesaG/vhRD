@@ -2,7 +2,7 @@ import { useAuth } from '../context/AuthContext';
 
 export const useOrganizationLabels = () => {
     const { companyData } = useAuth();
-    const type = companyData?.address || 'oficina'; // Default to 'oficina'
+    const type = (companyData?.address || 'oficina').toLowerCase().trim();
 
     const isOffice = type === 'oficina';
     

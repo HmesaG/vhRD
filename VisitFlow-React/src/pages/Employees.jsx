@@ -285,7 +285,7 @@ const Employees = () => {
                         )}
                     </div>
                 </div>
-                {role === 'superadmin' && (
+                {(role === 'superadmin' || role === 'administrador') && (
                     <div className="flex gap-2 w-full sm:w-auto overflow-x-auto no-scrollbar">
                         <input
                             type="file"
