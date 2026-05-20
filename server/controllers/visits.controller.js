@@ -33,7 +33,22 @@ export const getAll = async (req, res) => {
         }
 
         const where = conditions.length ? `WHERE ${conditions.join(' AND ')}` : '';
-        const query = `SELECT * FROM visits ${where} ORDER BY check_in DESC`;
+        const query = `
+            SELECT v.*, 
+                   COALESCE(
+                       NULLIF(v.visitor_phone, ''), 
+                       (SELECT whatsapp FROM employees e WHERE e.company_id = v.company_id AND e.name = v.employee LIMIT 1), 
+                       ''
+                   ) AS visitor_phone,
+                   COALESCE(
+                       NULLIF(v.visitor_email, ''), 
+                       (SELECT email FROM employees e WHERE e.company_id = v.company_id AND e.name = v.employee LIMIT 1), 
+                       ''
+                   ) AS visitor_email
+            FROM visits v
+            ${where}
+            ORDER BY v.check_in DESC
+        `;
 
         const result = await pool.query(query, params);
         res.json(result.rows.map(mapVisitRow));
@@ -45,7 +60,22 @@ export const getAll = async (req, res) => {
 
 export const getById = async (req, res) => {
     try {
-        const result = await pool.query('SELECT * FROM visits WHERE id = $1', [req.params.id]);
+        const query = `
+            SELECT v.*, 
+                   COALESCE(
+                       NULLIF(v.visitor_phone, ''), 
+                       (SELECT whatsapp FROM employees e WHERE e.company_id = v.company_id AND e.name = v.employee LIMIT 1), 
+                       ''
+                   ) AS visitor_phone,
+                   COALESCE(
+                       NULLIF(v.visitor_email, ''), 
+                       (SELECT email FROM employees e WHERE e.company_id = v.company_id AND e.name = v.employee LIMIT 1), 
+                       ''
+                   ) AS visitor_email
+            FROM visits v
+            WHERE v.id = $1
+        `;
+        const result = await pool.query(query, [req.params.id]);
         if (result.rows.length === 0) {
             return res.status(404).json({ error: 'Visita no encontrada' });
         }
@@ -68,6 +98,24 @@ export const create = async (req, res) => {
             ? (req.body.companyId || req.user.company_id)
             : req.user.company_id;
 
+        // Auto-lookup contact details from employees if they are missing
+        let finalPhone = visitor_phone;
+        let finalEmail = visitor_email;
+        if ((!finalPhone || !finalEmail) && employee) {
+            try {
+                const empRes = await pool.query(
+                    'SELECT whatsapp, email FROM employees WHERE company_id = $1 AND name = $2 LIMIT 1',
+                    [companyId, employee]
+                );
+                if (empRes.rows.length > 0) {
+                    if (!finalPhone) finalPhone = empRes.rows[0].whatsapp || '';
+                    if (!finalEmail) finalEmail = empRes.rows[0].email || '';
+                }
+            } catch (empLookupErr) {
+                console.error('Error looking up employee details during visit creation:', empLookupErr);
+            }
+        }
+
         const result = await pool.query(
             `INSERT INTO visits (
                 company_id, full_name, document_id, company_name, document_id_empresa, 
@@ -81,7 +129,7 @@ export const create = async (req, res) => {
             [
                 companyId, full_name, document_id, company, document_id_empresa || null, 
                 reason, employee, badge_number || null, areaId || null, photo_url || null, 
-                visitor_phone || '', visitor_email || '', accessMethod || 'badge'
+                finalPhone || '', finalEmail || '', accessMethod || 'badge'
             ]
         );
 

@@ -250,7 +250,7 @@ const VisitModal = ({ isOpen, onClose }) => {
         }
 
         try {
-            const selectedEmployee = employees.find(emp => emp.name === formData.employee);
+            const selectedEmployee = employees.find(emp => emp.name?.trim().toLowerCase() === formData.employee?.trim().toLowerCase());
 
             // Compress photo before sending to reduce payload size
             const compressedPhoto = formData.photo_url
